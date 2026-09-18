@@ -12,7 +12,11 @@ import { UsersModule } from './users/users.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    TypeOrmModule.forRoot(AppDataSource.options),
+    TypeOrmModule.forRoot({
+      ...AppDataSource.options,
+      migrations: [],
+      migrationsRun: false,
+    }),
     CognitoModule,
     UsersModule,
   ],
