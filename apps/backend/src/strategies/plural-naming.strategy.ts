@@ -13,7 +13,7 @@ export class PluralNamingStrategy
     customName: string,
     embeddedPrefixes: string[],
   ): string {
-    return propertyName;
+    return customName || propertyName;
   }
 
   relationName(propertyName: string): string {

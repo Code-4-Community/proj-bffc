@@ -12,7 +12,8 @@
     "lib": ["es2020", "dom"],
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
-    "paths": {}
+    "paths": {},
+    "strictPropertyInitialization": false
   },
   "exclude": ["node_modules", "tmp"]
 }
