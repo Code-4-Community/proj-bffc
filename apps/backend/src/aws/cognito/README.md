@@ -28,6 +28,22 @@ Some key concepts you'll need to know are:
 
 So: **every route is protected by default, a request is allowed only if it carries a valid Cognito access token or if the route is marked `@Public()`, which skips the check entirely.** Public routes are for things that must work without a login, like health checks, webhooks, or the login entry point itself.
 
+### Role checks (`@Roles` / `RolesGuard`)
+
+Authentication (a valid token) is not the same as authorization (being allowed to do this particular thing). `RolesGuard` is registered as a second global `APP_GUARD` and reads `@Roles('admin')` (or any Cognito group name) from the handler. The caller must have at least one of those strings in `cognito:groups`. Routes without `@Roles()` are unchanged. When `AUTH_DISABLED=true`, role checks are skipped along with JWT verification.
+
+```typescript
+import { Roles } from './aws/cognito/cognito.decorator';
+
+@Get('adminEvent')
+@Roles('admin')
+listForStaff() {
+  return this.eventsService.findAllForAdmin({});
+}
+```
+
+Missing/invalid token → `401` (from `CognitoJWTGuard`). Valid token but wrong group → `403 Insufficient permissions`.
+
 ## QUICKSTART: 
 
 Copy placeholders from the repo root `example.env` into `.env` (or your deployment secrets). The `COGNITO_*` variables drive **both** the backend and the frontend:

@@ -6,6 +6,7 @@ import { AppService } from './app.service';
 import AppDataSource from './data-source';
 import { CognitoModule } from './aws/cognito/cognito.module';
 import { UsersModule } from './users/users.module';
+import { EventsModule } from './events/events.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { UsersModule } from './users/users.module';
     }),
     CognitoModule,
     UsersModule,
+    EventsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
