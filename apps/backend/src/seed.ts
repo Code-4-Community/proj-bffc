@@ -30,6 +30,10 @@ import { PartnerOrg } from './entities/partner-org.entity';
 import { VolunteerOpportunity } from './entities/volunteer-opportunity.entity';
 import { AdminEvent } from './entities/admin-event.entity';
 import { StewardEvent } from './entities/steward-event.entity';
+import {
+  RecurringEvent,
+  RecurrenceFrequency,
+} from './entities/recurring-event.entity';
 import { Announcement } from './entities/announcement.entity';
 import { Point } from 'geojson';
 
@@ -47,6 +51,7 @@ async function seed() {
   const volunteerRepo = AppDataSource.getRepository(VolunteerOpportunity);
   const adminEventRepo = AppDataSource.getRepository(AdminEvent);
   const stewardEventRepo = AppDataSource.getRepository(StewardEvent);
+  const recurringEventRepo = AppDataSource.getRepository(RecurringEvent);
   const announcementRepo = AppDataSource.getRepository(Announcement);
 
   console.log('Seeding database...');
@@ -121,10 +126,19 @@ async function seed() {
     }),
   );
 
-  // Plant inventory — site1 has two, site2 has one
+  // Plant inventory — site1 has two (with images), site2 has one
+  // without an image to test the null imageS3Key case
   await plantRepo.save([
-    plantRepo.create({ plantName: 'Paw Paw', site: site1 }),
-    plantRepo.create({ plantName: 'American Persimmon', site: site1 }),
+    plantRepo.create({
+      plantName: 'Paw Paw',
+      imageS3Key: 'sites/egleston/plants/paw-paw.jpg',
+      site: site1,
+    }),
+    plantRepo.create({
+      plantName: 'American Persimmon',
+      imageS3Key: 'sites/egleston/plants/american-persimmon.jpg',
+      site: site1,
+    }),
     plantRepo.create({ plantName: 'Highbush Blueberry', site: site2 }),
   ]);
 
@@ -188,6 +202,30 @@ async function seed() {
       steward: stewardUser,
     }),
   );
+
+  // Recurring events — site1's has an end date; site2's repeats
+  // indefinitely to test the null endDate case
+  await recurringEventRepo.save([
+    recurringEventRepo.create({
+      description: 'Monthly Orchard Pruning Workshop',
+      date: '2026-11-07',
+      time: '10:00:00',
+      place: 'Egleston Community Orchard',
+      registrationLink: 'https://lu.ma/example-pruning',
+      frequency: RecurrenceFrequency.MONTHLY,
+      endDate: '2027-04-03',
+      site: site1,
+    }),
+    recurringEventRepo.create({
+      description: 'Weekly Community Workday',
+      date: '2026-10-24',
+      time: '09:30:00',
+      place: 'Fowler Clark Epstein Farm',
+      registrationLink: 'https://lu.ma/example-workday',
+      frequency: RecurrenceFrequency.WEEKLY,
+      site: site2,
+    }),
+  ]);
 
   // Announcements — excluded from GET /site/{id} per the ticket, but
   // seeded anyway so that exclusion is actually testable
