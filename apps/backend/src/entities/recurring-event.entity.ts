@@ -7,12 +7,19 @@ import {
 } from 'typeorm';
 import { Site } from './site.entity';
 
-@Entity('recurring-events')
+export enum RecurrenceFrequency {
+  DAILY = 'daily',
+  WEEKLY = 'weekly',
+  BIWEEKLY = 'biweekly',
+  MONTHLY = 'monthly',
+}
+
+@Entity('recurring_events')
 export class RecurringEvent {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @ManyToOne(() => Site, (site) => site.adminEvents)
+  @ManyToOne(() => Site, (site) => site.recurringEvents)
   @JoinColumn({ name: 'site_id' })
   site!: Site;
 
@@ -31,6 +38,9 @@ export class RecurringEvent {
   @Column()
   registrationLink!: string;
 
-  @Column({ type: 'date' })
-  recurringDate!: string;
+  @Column({ type: 'enum', enum: RecurrenceFrequency })
+  frequency!: RecurrenceFrequency;
+
+  @Column({ type: 'date', nullable: true })
+  endDate?: string;
 }
