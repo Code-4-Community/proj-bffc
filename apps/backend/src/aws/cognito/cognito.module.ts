@@ -2,6 +2,7 @@ import { Global, Module, OnModuleInit, Logger } from '@nestjs/common';
 import { CognitoJWTGuard } from './cognito.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { CognitoService } from './cognito.service';
+import { RolesGuard } from './roles.guard';
 import {
   getCognitoConfig,
   hasAnyCognitoEnv,
@@ -13,6 +14,7 @@ import {
   providers: [
     CognitoService,
     { provide: APP_GUARD, useClass: CognitoJWTGuard },
+    { provide: APP_GUARD, useClass: RolesGuard },
   ],
   exports: [CognitoService],
 })

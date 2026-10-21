@@ -166,28 +166,54 @@ async function seed() {
   );
 
   // Admin events (Luma-linked, staff)
-  await adminEventRepo.save(
+  await adminEventRepo.save([
     adminEventRepo.create({
-      description: 'Fall Harvest Celebration',
+      name: 'Fall Harvest Celebration',
+      description:
+        'Celebrate the season with neighbors — cider, tours, and a potluck.',
+      eventType: 'harvest',
       date: '2026-10-25',
       time: '14:00:00',
       place: 'Egleston Community Orchard',
       registrationLink: 'https://lu.ma/example-harvest',
       site: site1,
     }),
-  );
+    adminEventRepo.create({
+      name: 'Winter Planning Workshop',
+      description:
+        'Staff-led workshop covering next season’s planting calendar.',
+      eventType: 'workshop',
+      date: '2026-11-08',
+      time: '11:00:00',
+      place: 'Fowler Clark Epstein Farm',
+      registrationLink: 'https://lu.ma/example-workshop',
+      site: site2,
+    }),
+  ]);
 
   // Steward events
-  await stewardEventRepo.save(
+  await stewardEventRepo.save([
     stewardEventRepo.create({
-      description: 'Weekly Watering Shift',
+      name: 'Weekly Watering Shift',
+      description: 'Open watering shift for site volunteers.',
+      eventType: 'volunteer',
       date: '2026-09-27',
       time: '09:00:00',
       place: 'Fowler Clark Epstein Farm',
       site: site2,
       steward: stewardUser,
     }),
-  );
+    stewardEventRepo.create({
+      name: 'Mulch & Path Work Day',
+      description: 'Spread wood chips and repair the main path.',
+      eventType: 'volunteer',
+      date: '2026-10-04',
+      time: '10:00:00',
+      place: 'Egleston Community Orchard',
+      site: site1,
+      steward: stewardUser,
+    }),
+  ]);
 
   // Announcements — excluded from GET /site/{id} per the ticket, but
   // seeded anyway so that exclusion is actually testable
