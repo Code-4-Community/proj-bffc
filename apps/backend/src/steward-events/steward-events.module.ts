@@ -8,6 +8,5 @@ import { StewardEvent } from '../entities/steward-event.entity';
   imports: [TypeOrmModule.forFeature([StewardEvent])],
   controllers: [StewardEventsController],
   providers: [StewardEventsService],
-  exports: [StewardEventsService],
 })
 export class StewardEventsModule {}

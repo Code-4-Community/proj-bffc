@@ -2,8 +2,7 @@ import { Controller, Get, ParseUUIDPipe, Query } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
-  ApiQuery,
-  ApiResponse,
+  ApiOkResponse,
   ApiBadRequestResponse,
 } from '@nestjs/swagger';
 import { StewardEventsService } from './steward-events.service';
@@ -18,24 +17,11 @@ export class StewardEventsController {
   @ApiOperation({
     summary: 'List steward-published events for a site',
     description:
-      'Returns informational events published by the steward of the given site, sorted chronologically (date, then time). These have no RSVP tracking. Returns an empty array if the site has no steward events.',
+      'Sorted by date, then time. Returns an empty array if the site has none.',
   })
-  @ApiQuery({
-    name: 'siteId',
-    description: 'Site UUID',
-    required: true,
-    schema: { type: 'string', format: 'uuid' },
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Steward events retrieved successfully',
-    type: StewardEventResponseDto,
-    isArray: true,
-  })
-  @ApiBadRequestResponse({
-    description: 'siteId is missing or not a valid UUID',
-  })
-  async getStewardEvents(
+  @ApiOkResponse({ type: [StewardEventResponseDto] })
+  @ApiBadRequestResponse({ description: 'siteId is missing or not a UUID' })
+  getStewardEvents(
     @Query('siteId', ParseUUIDPipe) siteId: string,
   ): Promise<StewardEventResponseDto[]> {
     return this.stewardEventsService.findBySite(siteId);

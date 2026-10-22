@@ -1,7 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export const STEWARD_EVENT_TYPE = 'steward';
-
 export class StewardEventResponseDto {
   @ApiProperty({ format: 'uuid' })
   id: string;
@@ -20,14 +18,13 @@ export class StewardEventResponseDto {
 
   @ApiProperty({
     description: 'Meeting/location info',
-    example: 'Fowler Clark Epstein Farm — meet at the barn',
+    example: 'Meet at the barn',
   })
   place: string;
 
   @ApiProperty({
-    enum: [STEWARD_EVENT_TYPE],
-    description:
-      'Always "steward". Lets clients mark steward-run events when listing them alongside admin (Luma) events.',
+    enum: ['steward'],
+    description: 'Marks the event as steward-run, vs. admin (Luma) events',
   })
-  eventType: typeof STEWARD_EVENT_TYPE;
+  eventType: 'steward';
 }
