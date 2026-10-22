@@ -7,6 +7,7 @@ import AppDataSource from './data-source';
 import { CognitoModule } from './aws/cognito/cognito.module';
 import { UsersModule } from './users/users.module';
 import { StewardEventsModule } from './steward-events/steward-events.module';
+import { SitesModule } from './sites/sites.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { StewardEventsModule } from './steward-events/steward-events.module';
     CognitoModule,
     UsersModule,
     StewardEventsModule,
+    SitesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
