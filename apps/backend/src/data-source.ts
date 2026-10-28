@@ -6,6 +6,7 @@ import { User } from './entities/user.entity';
 import { Site } from './entities/site.entity';
 import { AdminEvent } from './entities/admin-event.entity';
 import { StewardEvent } from './entities/steward-event.entity';
+import { RecurringEvent } from './entities/recurring-event.entity';
 import { PlantInventory } from './entities/plant-inventory.entity';
 import { Image } from './entities/image.entity';
 import { Video } from './entities/video.entity';
@@ -29,6 +30,7 @@ const AppDataSource = new DataSource({
     Site,
     AdminEvent,
     StewardEvent,
+    RecurringEvent,
     PlantInventory,
     Image,
     Video,
