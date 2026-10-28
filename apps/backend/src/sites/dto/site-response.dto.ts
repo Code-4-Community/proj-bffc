@@ -28,6 +28,20 @@ export class SiteResponseDto {
   accessibility: string;
 
   @ApiPropertyOptional({
+    description: 'Year or date the site was founded',
+    example: '2012',
+    nullable: true,
+  })
+  foundingDate: string | null;
+
+  @ApiPropertyOptional({
+    description: 'Hours the site is open',
+    example: 'Sunrise to sunset',
+    nullable: true,
+  })
+  hoursOpen: string | null;
+
+  @ApiPropertyOptional({
     type: AddressDto,
     description: 'Site address and location',
     nullable: true,

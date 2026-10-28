@@ -15,6 +15,8 @@ describe('SitesController', () => {
     type: SiteType.EXISTING_COALITION,
     history: 'Test history',
     accessibility: 'Wheelchair accessible',
+    foundingDate: '2012',
+    hoursOpen: 'Sunrise to sunset',
     address: {
       id: 'addr-id',
       street: '123 Main St',

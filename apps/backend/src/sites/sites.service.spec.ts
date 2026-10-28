@@ -15,6 +15,8 @@ describe('SitesService', () => {
     type: SiteType.EXISTING_COALITION,
     history: 'Founded in 2012...',
     accessibility: 'Wheelchair accessible',
+    foundingDate: '2012',
+    hoursOpen: 'Sunrise to sunset',
     steward: {
       id: 'steward-uuid',
       name: 'Jamie Chen',
@@ -69,6 +71,21 @@ describe('SitesService', () => {
       expect(result.type).toBe(mockSite.type);
       expect(result.history).toBe(mockSite.history);
       expect(result.accessibility).toBe(mockSite.accessibility);
+      expect(result.foundingDate).toBe('2012');
+      expect(result.hoursOpen).toBe('Sunrise to sunset');
+    });
+
+    it('should return null for unset foundingDate and hoursOpen', async () => {
+      mockRepo.findOne.mockResolvedValue({
+        ...mockSite,
+        foundingDate: undefined,
+        hoursOpen: undefined,
+      });
+
+      const result = await service.findOne(mockSite.id!);
+
+      expect(result.foundingDate).toBeNull();
+      expect(result.hoursOpen).toBeNull();
     });
 
     it('should return steward with only id and name', async () => {
