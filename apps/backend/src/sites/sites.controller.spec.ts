@@ -30,7 +30,6 @@ describe('SitesController', () => {
     videos: [],
     plantInventory: [{ id: 'plant-1', plantName: 'Oak' }],
     partnerOrgs: [],
-    volunteerOpportunities: [],
   };
 
   beforeEach(async () => {

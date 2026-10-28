@@ -13,7 +13,6 @@ import { Video } from './entities/video.entity';
 import { Testimonial } from './entities/testimonial.entity';
 import { Announcement } from './entities/announcement.entity';
 import { PartnerOrg } from './entities/partner-org.entity';
-import { VolunteerOpportunity } from './entities/volunteer-opportunity.entity';
 import { Address } from './entities/address.entity';
 
 dotenv.config();
@@ -37,7 +36,6 @@ const AppDataSource = new DataSource({
     Testimonial,
     Announcement,
     PartnerOrg,
-    VolunteerOpportunity,
     Address,
   ],
   migrations: ['apps/backend/src/migrations/*.ts'],

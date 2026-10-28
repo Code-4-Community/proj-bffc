@@ -40,14 +40,6 @@ describe('SitesService', () => {
     partnerOrgs: [
       { id: 'org-1', name: 'Boston Food Forest Coalition', site: {} as Site },
     ],
-    volunteerOpportunities: [
-      {
-        id: 'vol-1',
-        name: 'Spring Planting',
-        date: '2026-04-15',
-        site: {} as Site,
-      },
-    ],
   };
 
   beforeEach(async () => {
@@ -113,7 +105,6 @@ describe('SitesService', () => {
           'videos',
           'plantInventory',
           'partnerOrgs',
-          'volunteerOpportunities',
         ],
       });
     });
@@ -203,16 +194,6 @@ describe('SitesService', () => {
 
       expect(result.partnerOrgs).toEqual([
         { id: 'org-1', name: 'Boston Food Forest Coalition' },
-      ]);
-    });
-
-    it('should map volunteer opportunities correctly', async () => {
-      mockRepo.findOne.mockResolvedValue(mockSite);
-
-      const result = await service.findOne(mockSite.id!);
-
-      expect(result.volunteerOpportunities).toEqual([
-        { id: 'vol-1', name: 'Spring Planting', date: '2026-04-15' },
       ]);
     });
 

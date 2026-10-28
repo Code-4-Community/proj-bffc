@@ -18,7 +18,7 @@ export class SitesController {
   @ApiOperation({
     summary: 'Get site details by ID',
     description:
-      'Returns comprehensive site information including address, steward, gallery, plant inventory, partner organizations, and volunteer opportunities. Excludes events, announcements, and testimonials.',
+      'Returns comprehensive site information including address, steward, gallery, plant inventory, and partner organizations. Excludes events, announcements, and testimonials.',
   })
   @ApiParam({
     name: 'id',

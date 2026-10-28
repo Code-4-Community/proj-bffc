@@ -27,7 +27,6 @@ import { Image } from './entities/image.entity';
 import { Video } from './entities/video.entity';
 import { Testimonial } from './entities/testimonial.entity';
 import { PartnerOrg } from './entities/partner-org.entity';
-import { VolunteerOpportunity } from './entities/volunteer-opportunity.entity';
 import { AdminEvent } from './entities/admin-event.entity';
 import { StewardEvent } from './entities/steward-event.entity';
 import {
@@ -48,7 +47,6 @@ async function seed() {
   const videoRepo = AppDataSource.getRepository(Video);
   const testimonialRepo = AppDataSource.getRepository(Testimonial);
   const partnerOrgRepo = AppDataSource.getRepository(PartnerOrg);
-  const volunteerRepo = AppDataSource.getRepository(VolunteerOpportunity);
   const adminEventRepo = AppDataSource.getRepository(AdminEvent);
   const stewardEventRepo = AppDataSource.getRepository(StewardEvent);
   const recurringEventRepo = AppDataSource.getRepository(RecurringEvent);
@@ -170,21 +168,12 @@ async function seed() {
     }),
   );
 
-  // Volunteer opportunities
-  await volunteerRepo.save(
-    volunteerRepo.create({
-      name: 'Fall Mulching Day',
-      date: '2026-10-18',
-      site: site1,
-    }),
-  );
-
   // Admin events (Luma-linked, staff)
   await adminEventRepo.save(
     adminEventRepo.create({
       description: 'Fall Harvest Celebration',
       date: '2026-10-25',
-      time: '14:00:00',
+      startTime: '14:00:00',
       place: 'Egleston Community Orchard',
       registrationLink: 'https://lu.ma/example-harvest',
       site: site1,
@@ -196,7 +185,7 @@ async function seed() {
     stewardEventRepo.create({
       description: 'Weekly Watering Shift',
       date: '2026-09-27',
-      time: '09:00:00',
+      startTime: '09:00:00',
       place: 'Fowler Clark Epstein Farm',
       site: site2,
       steward: stewardUser,
@@ -211,7 +200,7 @@ async function seed() {
       description:
         'Learn seasonal pruning techniques for fruit trees. Tools provided.',
       startDate: '2026-11-07',
-      time: '10:00:00',
+      startTime: '10:00:00',
       place: 'Egleston Community Orchard',
       frequency: RecurrenceFrequency.MONTHLY,
       endDate: '2027-04-03',
@@ -222,7 +211,7 @@ async function seed() {
       description:
         'Drop-in volunteer workday — weeding, planting, and general upkeep.',
       startDate: '2026-10-24',
-      time: '09:30:00',
+      startTime: '09:30:00',
       place: 'Fowler Clark Epstein Farm',
       frequency: RecurrenceFrequency.WEEKLY,
       site: site2,
