@@ -207,21 +207,23 @@ async function seed() {
   // indefinitely to test the null endDate case
   await recurringEventRepo.save([
     recurringEventRepo.create({
-      description: 'Monthly Orchard Pruning Workshop',
-      date: '2026-11-07',
+      name: 'Monthly Orchard Pruning Workshop',
+      description:
+        'Learn seasonal pruning techniques for fruit trees. Tools provided.',
+      startDate: '2026-11-07',
       time: '10:00:00',
       place: 'Egleston Community Orchard',
-      registrationLink: 'https://lu.ma/example-pruning',
       frequency: RecurrenceFrequency.MONTHLY,
       endDate: '2027-04-03',
       site: site1,
     }),
     recurringEventRepo.create({
-      description: 'Weekly Community Workday',
-      date: '2026-10-24',
+      name: 'Weekly Community Workday',
+      description:
+        'Drop-in volunteer workday — weeding, planting, and general upkeep.',
+      startDate: '2026-10-24',
       time: '09:30:00',
       place: 'Fowler Clark Epstein Farm',
-      registrationLink: 'https://lu.ma/example-workday',
       frequency: RecurrenceFrequency.WEEKLY,
       site: site2,
     }),

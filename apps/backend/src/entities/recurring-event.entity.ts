@@ -24,19 +24,19 @@ export class RecurringEvent {
   site!: Site;
 
   @Column()
+  name!: string;
+
+  @Column()
   description!: string;
 
   @Column({ type: 'date' })
-  date!: string;
+  startDate!: string;
 
   @Column({ type: 'time' })
   time!: string;
 
   @Column()
   place!: string;
-
-  @Column()
-  registrationLink!: string;
 
   @Column({ type: 'enum', enum: RecurrenceFrequency })
   frequency!: RecurrenceFrequency;
