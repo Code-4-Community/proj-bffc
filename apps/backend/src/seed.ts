@@ -79,6 +79,8 @@ async function seed() {
         'Founded in 2012 on a formerly vacant lot, transformed by neighborhood volunteers into a thriving food forest.',
       accessibility:
         'Wheelchair accessible via Washington St entrance; gravel paths throughout.',
+      foundingDate: '2012',
+      hoursOpen: 'Sunrise to sunset',
       type: SiteType.EXISTING_COALITION,
       steward: adminUser,
     }),
@@ -150,12 +152,13 @@ async function seed() {
     videoRepo.create({ s3Key: 'sites/egleston/tour.mp4', site: site1 }),
   );
 
-  // Testimonials — only site1
+  // Testimonials — only site1, with a steward photo
   await testimonialRepo.save(
     testimonialRepo.create({
       question: 'Why do you volunteer here?',
       answer:
         'It’s the one place in the neighborhood where I feel connected to the land.',
+      stewardImageS3Key: 'sites/egleston/testimonials/jamie-chen.jpg',
       site: site1,
     }),
   );
@@ -168,32 +171,35 @@ async function seed() {
     }),
   );
 
-  // Admin events (Luma-linked, staff)
+  // Admin events (Luma-linked, staff) — fully populated, incl. flyer
   await adminEventRepo.save(
     adminEventRepo.create({
       description: 'Fall Harvest Celebration',
       date: '2026-10-25',
       startTime: '14:00:00',
+      endTime: '17:00:00',
       place: 'Egleston Community Orchard',
       registrationLink: 'https://lu.ma/example-harvest',
+      flyerS3Key: 'sites/egleston/flyers/fall-harvest.pdf',
       site: site1,
     }),
   );
 
-  // Steward events
+  // Steward events — has an end time but no flyer
   await stewardEventRepo.save(
     stewardEventRepo.create({
       description: 'Weekly Watering Shift',
       date: '2026-09-27',
       startTime: '09:00:00',
+      endTime: '11:00:00',
       place: 'Fowler Clark Epstein Farm',
       site: site2,
       steward: stewardUser,
     }),
   );
 
-  // Recurring events — site1's has an end date; site2's repeats
-  // indefinitely to test the null endDate case
+  // Recurring events — site1's has an end date, end time, and flyer;
+  // site2's repeats indefinitely with none of those, to test the null cases
   await recurringEventRepo.save([
     recurringEventRepo.create({
       name: 'Monthly Orchard Pruning Workshop',
@@ -201,7 +207,9 @@ async function seed() {
         'Learn seasonal pruning techniques for fruit trees. Tools provided.',
       startDate: '2026-11-07',
       startTime: '10:00:00',
+      endTime: '12:00:00',
       place: 'Egleston Community Orchard',
+      flyerS3Key: 'sites/egleston/flyers/pruning-workshop.pdf',
       frequency: RecurrenceFrequency.MONTHLY,
       endDate: '2027-04-03',
       site: site1,
