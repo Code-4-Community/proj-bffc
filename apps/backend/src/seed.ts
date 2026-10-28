@@ -137,6 +137,7 @@ async function seed() {
       title: 'Spring blossoms',
       description: 'Fruit trees in full bloom along the main path.',
       uploadedAt: new Date('2026-04-12T09:00:00Z'),
+      uploadedBy: adminUser,
       site: site1,
     }),
     imageRepo.create({
@@ -144,6 +145,7 @@ async function seed() {
       title: 'Summer harvest',
       description: 'Volunteers gathering the first paw paws of the season.',
       uploadedAt: new Date('2026-08-03T15:30:00Z'),
+      uploadedBy: stewardUser,
       site: site1,
     }),
   ]);
@@ -154,6 +156,7 @@ async function seed() {
       title: 'Walking tour',
       description: 'A short guided tour of the orchard with the site steward.',
       uploadedAt: new Date('2026-07-20T12:00:00Z'),
+      uploadedBy: adminUser,
       site: site1,
     }),
   );

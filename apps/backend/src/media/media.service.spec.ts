@@ -3,6 +3,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { NotFoundException } from '@nestjs/common';
 import { MediaService } from './media.service';
 import { Site } from '../entities/site.entity';
+import { Image } from '../entities/image.entity';
 import { MediaType } from './dto/media-query.dto';
 
 describe('MediaService', () => {
@@ -11,12 +12,14 @@ describe('MediaService', () => {
 
   const siteId = '123e4567-e89b-12d3-a456-426614174000';
 
+  const alex = { id: 'u-admin', name: 'Alex Rivera' } as Image['uploadedBy'];
+  const jamie = { id: 'u-steward', name: 'Jamie Chen' } as Image['uploadedBy'];
+
   // Three images with out-of-order uploadedAt values so sorting is observable,
-  // plus a single video. Steward supplies uploadedBy.
+  // plus a single video. uploadedBy is tracked per item.
   const makeSite = (overrides: Partial<Site> = {}): Partial<Site> => ({
     id: siteId,
     name: 'Egleston Community Orchard',
-    steward: { id: 'steward-uuid', name: 'Jamie Chen' } as Site['steward'],
     images: [
       {
         id: 'img-old',
@@ -24,6 +27,7 @@ describe('MediaService', () => {
         title: 'Old',
         description: 'oldest image',
         uploadedAt: new Date('2026-01-01T00:00:00Z'),
+        uploadedBy: alex,
         site: {} as Site,
       },
       {
@@ -32,6 +36,7 @@ describe('MediaService', () => {
         title: 'New',
         description: 'newest image',
         uploadedAt: new Date('2026-06-01T00:00:00Z'),
+        uploadedBy: jamie,
         site: {} as Site,
       },
       {
@@ -40,6 +45,7 @@ describe('MediaService', () => {
         title: 'Mid',
         description: 'middle image',
         uploadedAt: new Date('2026-03-01T00:00:00Z'),
+        uploadedBy: alex,
         site: {} as Site,
       },
     ],
@@ -50,6 +56,7 @@ describe('MediaService', () => {
         title: 'Tour',
         description: 'walking tour',
         uploadedAt: new Date('2026-05-01T00:00:00Z'),
+        uploadedBy: jamie,
         site: {} as Site,
       },
     ],
@@ -74,14 +81,14 @@ describe('MediaService', () => {
     service = module.get<MediaService>(MediaService);
   });
 
-  it('loads only steward, images, and videos relations', async () => {
+  it('loads the images/videos relations with their uploaders', async () => {
     mockRepo.findOne.mockResolvedValue(makeSite());
 
     await service.getMediaBySiteId(siteId, defaultQuery);
 
     expect(mockRepo.findOne).toHaveBeenCalledWith({
       where: { id: siteId },
-      relations: ['steward', 'images', 'videos'],
+      relations: ['images', 'images.uploadedBy', 'videos', 'videos.uploadedBy'],
     });
   });
 
@@ -191,9 +198,21 @@ describe('MediaService', () => {
     expect(page2.pagination.imagesTotal).toBe(3);
   });
 
-  it('derives uploadedBy as null when the site has no steward', async () => {
+  it('returns null uploadedBy when a media item has no uploader', async () => {
     mockRepo.findOne.mockResolvedValue(
-      makeSite({ steward: null as unknown as Site['steward'] }),
+      makeSite({
+        images: [
+          {
+            id: 'img-nouploader',
+            s3Key: 'sites/test/x.jpg',
+            title: null,
+            description: null,
+            uploadedAt: new Date('2026-01-01T00:00:00Z'),
+            uploadedBy: null,
+            site: {} as Site,
+          },
+        ],
+      }),
     );
 
     const result = await service.getMediaBySiteId(siteId, defaultQuery);

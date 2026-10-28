@@ -41,6 +41,7 @@ describe('SitesService', () => {
         title: null,
         description: null,
         uploadedAt: new Date('2026-01-01T00:00:00Z'),
+        uploadedBy: null,
         site: {} as Site,
       },
     ],

@@ -24,7 +24,7 @@ export class MediaService {
   ): Promise<MediaResponseDto> {
     const site = await this.siteRepo.findOne({
       where: { id: siteId },
-      relations: ['steward', 'images', 'videos'],
+      relations: ['images', 'images.uploadedBy', 'videos', 'videos.uploadedBy'],
     });
 
     if (!site) {
@@ -32,15 +32,14 @@ export class MediaService {
     }
 
     const { type, page, limit } = query;
-    const uploadedBy = site.steward?.name ?? null;
 
     // Map + sort newest first. Totals are the full counts, captured before the
     // page slice so pagination metadata reflects everything available.
     const allImages = this.sortNewestFirst(
-      (site.images ?? []).map((img) => this.mapToDto(img, uploadedBy)),
+      (site.images ?? []).map((img) => this.mapToDto(img)),
     );
     const allVideos = this.sortNewestFirst(
-      (site.videos ?? []).map((vid) => this.mapToDto(vid, uploadedBy)),
+      (site.videos ?? []).map((vid) => this.mapToDto(vid)),
     );
 
     const imagesTotal = allImages.length;
@@ -59,17 +58,14 @@ export class MediaService {
     };
   }
 
-  private mapToDto(
-    media: Image | Video,
-    uploadedBy: string | null,
-  ): MediaItemDto {
+  private mapToDto(media: Image | Video): MediaItemDto {
     return {
       id: media.id,
       url: this.buildS3Url(media.s3Key),
       title: media.title ?? null,
       description: media.description ?? null,
       uploadedAt: media.uploadedAt,
-      uploadedBy,
+      uploadedBy: media.uploadedBy?.name ?? null,
     };
   }
 

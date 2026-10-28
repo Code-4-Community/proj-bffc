@@ -6,6 +6,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Site } from './site.entity';
+import { User } from './user.entity';
 
 @Entity('images')
 export class Image {
@@ -27,4 +28,8 @@ export class Image {
 
   @Column({ type: 'timestamptz', default: () => 'now()' })
   uploadedAt!: Date;
+
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn({ name: 'uploaded_by' })
+  uploadedBy!: User | null;
 }
