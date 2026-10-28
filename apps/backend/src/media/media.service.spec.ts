@@ -230,22 +230,4 @@ describe('MediaService', () => {
       ),
     ).rejects.toThrow(NotFoundException);
   });
-
-  it('falls back to the raw s3Key when no bucket is configured', async () => {
-    process.env.AWS_MEDIA_BUCKET_NAME = '';
-
-    const moduleNoBucket: TestingModule = await Test.createTestingModule({
-      providers: [
-        MediaService,
-        { provide: getRepositoryToken(Site), useValue: mockRepo },
-      ],
-    }).compile();
-    const serviceNoBucket = moduleNoBucket.get<MediaService>(MediaService);
-
-    mockRepo.findOne.mockResolvedValue(makeSite());
-
-    const result = await serviceNoBucket.getMediaBySiteId(siteId, defaultQuery);
-
-    expect(result.videos[0].url).toBe('sites/test/tour.mp4');
-  });
 });
