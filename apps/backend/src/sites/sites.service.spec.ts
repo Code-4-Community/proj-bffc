@@ -34,7 +34,16 @@ describe('SitesService', () => {
       site: {} as Site,
       geojson: {},
     },
-    images: [{ id: 'img-1', s3Key: 'sites/test/img.jpg', site: {} as Site }],
+    images: [
+      {
+        id: 'img-1',
+        s3Key: 'sites/test/img.jpg',
+        title: null,
+        description: null,
+        uploadedAt: new Date('2026-01-01T00:00:00Z'),
+        site: {} as Site,
+      },
+    ],
     videos: [],
     plantInventory: [{ id: 'plant-1', plantName: 'Paw Paw', site: {} as Site }],
     partnerOrgs: [

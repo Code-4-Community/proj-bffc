@@ -18,4 +18,13 @@ export class Video {
 
   @Column()
   s3Key!: string;
+
+  @Column({ type: 'varchar', nullable: true })
+  title!: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  description!: string | null;
+
+  @Column({ type: 'timestamptz', default: () => 'now()' })
+  uploadedAt!: Date;
 }
