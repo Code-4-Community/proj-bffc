@@ -15,6 +15,8 @@ describe('SitesService', () => {
     type: SiteType.EXISTING_COALITION,
     history: 'Founded in 2012...',
     accessibility: 'Wheelchair accessible',
+    foundingDate: '2012',
+    hoursOpen: 'Sunrise to sunset',
     steward: {
       id: 'steward-uuid',
       name: 'Jamie Chen',
@@ -39,14 +41,6 @@ describe('SitesService', () => {
     plantInventory: [{ id: 'plant-1', plantName: 'Paw Paw', site: {} as Site }],
     partnerOrgs: [
       { id: 'org-1', name: 'Boston Food Forest Coalition', site: {} as Site },
-    ],
-    volunteerOpportunities: [
-      {
-        id: 'vol-1',
-        name: 'Spring Planting',
-        date: '2026-04-15',
-        site: {} as Site,
-      },
     ],
   };
 
@@ -77,6 +71,21 @@ describe('SitesService', () => {
       expect(result.type).toBe(mockSite.type);
       expect(result.history).toBe(mockSite.history);
       expect(result.accessibility).toBe(mockSite.accessibility);
+      expect(result.foundingDate).toBe('2012');
+      expect(result.hoursOpen).toBe('Sunrise to sunset');
+    });
+
+    it('should return null for unset foundingDate and hoursOpen', async () => {
+      mockRepo.findOne.mockResolvedValue({
+        ...mockSite,
+        foundingDate: undefined,
+        hoursOpen: undefined,
+      });
+
+      const result = await service.findOne(mockSite.id!);
+
+      expect(result.foundingDate).toBeNull();
+      expect(result.hoursOpen).toBeNull();
     });
 
     it('should return steward with only id and name', async () => {
@@ -113,7 +122,6 @@ describe('SitesService', () => {
           'videos',
           'plantInventory',
           'partnerOrgs',
-          'volunteerOpportunities',
         ],
       });
     });
@@ -203,16 +211,6 @@ describe('SitesService', () => {
 
       expect(result.partnerOrgs).toEqual([
         { id: 'org-1', name: 'Boston Food Forest Coalition' },
-      ]);
-    });
-
-    it('should map volunteer opportunities correctly', async () => {
-      mockRepo.findOne.mockResolvedValue(mockSite);
-
-      const result = await service.findOne(mockSite.id!);
-
-      expect(result.volunteerOpportunities).toEqual([
-        { id: 'vol-1', name: 'Spring Planting', date: '2026-04-15' },
       ]);
     });
 

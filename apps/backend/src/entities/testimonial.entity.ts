@@ -21,4 +21,7 @@ export class Testimonial {
 
   @Column({ type: 'text' })
   answer!: string;
+
+  @Column({ nullable: true })
+  stewardImageS3Key?: string;
 }

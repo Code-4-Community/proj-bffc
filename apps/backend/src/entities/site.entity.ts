@@ -10,13 +10,13 @@ import {
 import { User } from './user.entity';
 import { AdminEvent } from './admin-event.entity';
 import { StewardEvent } from './steward-event.entity';
+import { RecurringEvent } from './recurring-event.entity';
 import { PlantInventory } from './plant-inventory.entity';
 import { Image } from './image.entity';
 import { Video } from './video.entity';
 import { Testimonial } from './testimonial.entity';
 import { Announcement } from './announcement.entity';
 import { PartnerOrg } from './partner-org.entity';
-import { VolunteerOpportunity } from './volunteer-opportunity.entity';
 import { Address } from './address.entity';
 
 export enum SiteType {
@@ -47,6 +47,12 @@ export class Site {
   @Column()
   accessibility!: string;
 
+  @Column({ nullable: true })
+  foundingDate?: string;
+
+  @Column({ nullable: true })
+  hoursOpen?: string;
+
   @Column({ type: 'enum', enum: SiteType })
   type!: SiteType;
 
@@ -55,6 +61,9 @@ export class Site {
 
   @OneToMany(() => StewardEvent, (event) => event.site)
   stewardEvents!: StewardEvent[];
+
+  @OneToMany(() => RecurringEvent, (event) => event.site)
+  recurringEvents!: RecurringEvent[];
 
   @OneToMany(() => PlantInventory, (plant) => plant.site)
   plantInventory!: PlantInventory[];
@@ -73,7 +82,4 @@ export class Site {
 
   @OneToMany(() => PartnerOrg, (org) => org.site)
   partnerOrgs!: PartnerOrg[];
-
-  @OneToMany(() => VolunteerOpportunity, (opp) => opp.site)
-  volunteerOpportunities!: VolunteerOpportunity[];
 }
