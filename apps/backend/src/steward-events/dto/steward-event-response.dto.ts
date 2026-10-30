@@ -21,10 +21,5 @@ export class StewardEventResponseDto {
     example: 'Meet at the barn',
   })
   place: string;
-
-  @ApiProperty({
-    enum: ['steward'],
-    description: 'Marks the event as steward-run, vs. admin (Luma) events',
-  })
-  eventType: 'steward';
+  
 }
