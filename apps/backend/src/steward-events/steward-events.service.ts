@@ -12,11 +12,18 @@ export class StewardEventsService {
   ) {}
 
   async findBySite(siteId: string): Promise<StewardEventResponseDto[]> {
-    // No relations are loaded, so each event holds only its own columns
     const events = await this.stewardEventRepo.find({
       where: { site: { id: siteId } },
       order: { date: 'ASC', time: 'ASC' },
     });
-    return events.map((event) => ({ ...event, eventType: 'steward' }));
+    
+    return events.map((event) => ({
+      id: event.id,
+      name: event.name,
+      description: event.description,
+      date: event.date,
+      time: event.time,
+      place: event.place,
+    }));
   }
 }
