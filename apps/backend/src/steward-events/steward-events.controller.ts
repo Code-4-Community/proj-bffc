@@ -14,6 +14,7 @@ export class StewardEventsController {
   constructor(private stewardEventsService: StewardEventsService) {}
 
   @Get()
+  @Public()
   @ApiOperation({
     summary: 'List steward-published events for a site',
     description:
