@@ -29,7 +29,7 @@ export class Video {
   @Column({ type: 'timestamptz', default: () => 'now()' })
   uploadedAt!: Date;
 
-  @ManyToOne(() => User, { nullable: true })
+  @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'uploaded_by' })
   uploadedBy!: User | null;
 }
