@@ -13,7 +13,11 @@ export class MediaService {
   private readonly s3Region: string;
   private readonly s3Bucket: string;
 
-  constructor(@InjectRepository(Site) private siteRepo: Repository<Site>) {
+  constructor(
+    @InjectRepository(Site) private siteRepo: Repository<Site>,
+    @InjectRepository(Image) private imageRepo: Repository<Image>,
+    @InjectRepository(Video) private videoRepo: Repository<Video>,
+  ) {
     this.s3Region = process.env.AWS_REGION ?? 'us-east-2';
     this.s3Bucket = process.env.AWS_MEDIA_BUCKET_NAME ?? '';
   }
@@ -22,40 +26,63 @@ export class MediaService {
     siteId: string,
     query: MediaQueryDto,
   ): Promise<MediaResponseDto> {
-    const site = await this.siteRepo.findOne({
-      where: { id: siteId },
-      relations: ['images', 'images.uploadedBy', 'videos', 'videos.uploadedBy'],
-    });
+    const siteExists = await this.siteRepo.exists({ where: { id: siteId } });
 
-    if (!site) {
+    if (!siteExists) {
       throw new NotFoundException(`Site with ID ${siteId} not found`);
     }
 
     const { type, page, limit } = query;
-
-    // Map + sort newest first. Totals are the full counts, captured before the
-    // page slice so pagination metadata reflects everything available.
-    const allImages = this.sortNewestFirst(
-      (site.images ?? []).map((img) => this.mapToDto(img)),
-    );
-    const allVideos = this.sortNewestFirst(
-      (site.videos ?? []).map((vid) => this.mapToDto(vid)),
-    );
-
-    const imagesTotal = allImages.length;
-    const videosTotal = allVideos.length;
-
     const skip = (page - 1) * limit;
-    const images =
-      type === MediaType.VIDEO ? [] : allImages.slice(skip, skip + limit);
-    const videos =
-      type === MediaType.IMAGE ? [] : allVideos.slice(skip, skip + limit);
+
+    // Totals are always the full counts, even for a type that is excluded from the page.
+    const [[images, imagesTotal], [videos, videosTotal]] = await Promise.all([
+      this.fetchPage(
+        this.imageRepo,
+        siteId,
+        skip,
+        limit,
+        type !== MediaType.VIDEO,
+      ),
+      this.fetchPage(
+        this.videoRepo,
+        siteId,
+        skip,
+        limit,
+        type !== MediaType.IMAGE,
+      ),
+    ]);
 
     return {
       images,
       videos,
       pagination: { page, limit, imagesTotal, videosTotal },
     };
+  }
+
+  private async fetchPage(
+    repo: Repository<Image> | Repository<Video>,
+    siteId: string,
+    skip: number,
+    take: number,
+    includeItems: boolean,
+  ): Promise<[MediaItemDto[], number]> {
+    const where = { site: { id: siteId } };
+
+    if (!includeItems) {
+      return [[], await repo.count({ where })];
+    }
+
+    const [items, total] = await (
+      repo as Repository<Image | Video>
+    ).findAndCount({
+      where,
+      relations: ['uploadedBy'],
+      order: { uploadedAt: 'DESC', id: 'ASC' },
+      skip,
+      take,
+    });
+    return [items.map((item) => this.mapToDto(item)), total];
   }
 
   private mapToDto(media: Image | Video): MediaItemDto {
@@ -67,13 +94,6 @@ export class MediaService {
       uploadedAt: media.uploadedAt,
       uploadedBy: media.uploadedBy?.name ?? null,
     };
-  }
-
-  private sortNewestFirst(items: MediaItemDto[]): MediaItemDto[] {
-    return items.sort(
-      (a, b) =>
-        new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime(),
-    );
   }
 
   private buildS3Url(s3Key: string): string {
