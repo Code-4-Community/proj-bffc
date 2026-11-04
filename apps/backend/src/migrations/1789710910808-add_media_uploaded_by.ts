@@ -7,10 +7,10 @@ export class AddMediaUploadedBy1789710910808 implements MigrationInterface {
     await queryRunner.query(`ALTER TABLE "images" ADD "uploaded_by" uuid`);
     await queryRunner.query(`ALTER TABLE "videos" ADD "uploaded_by" uuid`);
     await queryRunner.query(
-      `ALTER TABLE "images" ADD CONSTRAINT "FK_images_uploaded_by" FOREIGN KEY ("uploaded_by") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+      `ALTER TABLE "images" ADD CONSTRAINT "FK_images_uploaded_by" FOREIGN KEY ("uploaded_by") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION`,
     );
     await queryRunner.query(
-      `ALTER TABLE "videos" ADD CONSTRAINT "FK_videos_uploaded_by" FOREIGN KEY ("uploaded_by") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+      `ALTER TABLE "videos" ADD CONSTRAINT "FK_videos_uploaded_by" FOREIGN KEY ("uploaded_by") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION`,
     );
   }
 
