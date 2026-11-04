@@ -1,0 +1,10 @@
+{
+  "slack_channel_id": "C0123456789",
+  "github_to_slack": {
+    "mehanana": "U000LEAD1",
+    "saumyapalk23": "U000LEAD2",
+    "developer-github-handle": "U000DEV1"
+  },
+  "leads": ["mehanana", "saumyapalk23"],
+  "roster": ["developer-github-handle"]
+}
