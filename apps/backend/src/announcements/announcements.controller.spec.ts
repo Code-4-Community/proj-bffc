@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 
+import { IS_PUBLIC_KEY } from '../aws/cognito/cognito.decorator';
 import { AnnouncementsController } from './announcements.controller';
 import { AnnouncementsService } from './announcements.service';
 import { AnnouncementResponseDto } from './dto/announcement-response.dto';
@@ -28,6 +29,14 @@ describe('AnnouncementsController', () => {
     }).compile();
 
     controller = module.get(AnnouncementsController);
+  });
+
+  it('marks GET /announcement/:site_id as @Public()', () => {
+    const isPublic = Reflect.getMetadata(
+      IS_PUBLIC_KEY,
+      AnnouncementsController.prototype.getAnnouncementsBySite,
+    );
+    expect(isPublic).toBe(true);
   });
 
   it('forwards site_id and returns the service result', async () => {

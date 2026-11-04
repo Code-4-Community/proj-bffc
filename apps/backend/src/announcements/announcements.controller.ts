@@ -7,6 +7,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
+import { Public } from '../aws/cognito/cognito.decorator';
 import { AnnouncementsService } from './announcements.service';
 import { AnnouncementResponseDto } from './dto/announcement-response.dto';
 
@@ -19,6 +20,7 @@ export class AnnouncementsController {
    * Public site-page list of steward announcements for one site.
    */
   @Get(':site_id')
+  @Public()
   @ApiOperation({
     summary: 'List announcements for a site',
     description:

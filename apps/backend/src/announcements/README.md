@@ -4,6 +4,8 @@ Stewards publish announcements (upcoming events, workdays, what is ripe, etc.). 
 
 ## `GET /api/announcement/{site_id}`
 
+**Auth:** `@Public()` — visitors can call this without a Bearer token (site detail page).
+
 **Path:** `site_id` must be a UUID. A non-UUID value is `400`.
 
 **Response:** JSON array, newest published date first (then `id` for a stable tie-break). Empty `[]` when the site exists but has no announcements — not `404`. Unknown `site_id` → `404`.
