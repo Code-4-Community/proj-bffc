@@ -1,7 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-import { EventSourceType } from '../events.types';
-
 export class AdminEventSiteDto {
   @ApiProperty({ format: 'uuid' })
   id!: string;
@@ -11,9 +9,7 @@ export class AdminEventSiteDto {
 }
 
 /**
- * Unified event row returned by `GET /adminEvent`. Luma-linked admin events
- * and steward-published events share this shape so staff can scan everything
- * in one list.
+ * Luma-linked admin event returned by `GET /adminEvent`.
  */
 export class AdminEventResponseDto {
   @ApiProperty({ format: 'uuid' })
@@ -40,14 +36,8 @@ export class AdminEventResponseDto {
   @ApiProperty()
   description!: string;
 
-  @ApiProperty({ example: 'harvest' })
-  eventType!: string;
-
-  @ApiProperty({ enum: EventSourceType })
-  sourceType!: EventSourceType;
-
   @ApiPropertyOptional({
-    description: 'Registration URL; present only for Luma-linked events',
+    description: 'Registration URL, when the event has one',
     example: 'https://lu.ma/example-harvest',
   })
   registrationLink?: string;

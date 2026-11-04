@@ -171,7 +171,6 @@ async function seed() {
       name: 'Fall Harvest Celebration',
       description:
         'Celebrate the season with neighbors — cider, tours, and a potluck.',
-      eventType: 'harvest',
       date: '2026-10-25',
       time: '14:00:00',
       place: 'Egleston Community Orchard',
@@ -182,7 +181,6 @@ async function seed() {
       name: 'Winter Planning Workshop',
       description:
         'Staff-led workshop covering next season’s planting calendar.',
-      eventType: 'workshop',
       date: '2026-11-08',
       time: '11:00:00',
       place: 'Fowler Clark Epstein Farm',
@@ -192,28 +190,16 @@ async function seed() {
   ]);
 
   // Steward events
-  await stewardEventRepo.save([
+  await stewardEventRepo.save(
     stewardEventRepo.create({
-      name: 'Weekly Watering Shift',
-      description: 'Open watering shift for site volunteers.',
-      eventType: 'volunteer',
+      description: 'Weekly Watering Shift',
       date: '2026-09-27',
       time: '09:00:00',
       place: 'Fowler Clark Epstein Farm',
       site: site2,
       steward: stewardUser,
     }),
-    stewardEventRepo.create({
-      name: 'Mulch & Path Work Day',
-      description: 'Spread wood chips and repair the main path.',
-      eventType: 'volunteer',
-      date: '2026-10-04',
-      time: '10:00:00',
-      place: 'Egleston Community Orchard',
-      site: site1,
-      steward: stewardUser,
-    }),
-  ]);
+  );
 
   // Announcements — excluded from GET /site/{id} per the ticket, but
   // seeded anyway so that exclusion is actually testable

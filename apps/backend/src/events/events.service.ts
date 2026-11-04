@@ -3,67 +3,39 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
 
 import { AdminEvent } from '../entities/admin-event.entity';
-import { StewardEvent } from '../entities/steward-event.entity';
 import { AdminEventQueryDto } from './dto/admin-event-query.dto';
 import { AdminEventResponseDto } from './dto/admin-event-response.dto';
-import { EventSourceType } from './events.types';
 
 @Injectable()
 export class EventsService {
   constructor(
     @InjectRepository(AdminEvent)
     private readonly adminEventRepo: Repository<AdminEvent>,
-    @InjectRepository(StewardEvent)
-    private readonly stewardEventRepo: Repository<StewardEvent>,
   ) {}
 
   /**
-   * Returns every Luma-linked and steward-run event that matches `filters`,
-   * mapped to a shared DTO and sorted by date then time (earliest first).
-   * An empty array means no rows matched — not an error.
+   * Returns Luma-linked admin events that match `filters`, sorted by date
+   * then time (earliest first). An empty array means no rows matched.
    */
   async findAllForAdmin(
     filters: AdminEventQueryDto,
   ): Promise<AdminEventResponseDto[]> {
-    const includeLuma =
-      !filters.source_type || filters.source_type === EventSourceType.LUMA;
-    const includeSteward =
-      !filters.source_type || filters.source_type === EventSourceType.STEWARD;
+    const events = await this.adminEventRepo.find({
+      where: this.buildWhere(filters),
+      relations: { site: true },
+    });
 
-    const [adminEvents, stewardEvents] = await Promise.all([
-      includeLuma
-        ? this.adminEventRepo.find({
-            where: this.buildWhere(filters),
-            relations: { site: true },
-          })
-        : Promise.resolve([] as AdminEvent[]),
-      includeSteward
-        ? this.stewardEventRepo.find({
-            where: this.buildWhere(filters),
-            relations: { site: true },
-          })
-        : Promise.resolve([] as StewardEvent[]),
-    ]);
-
-    const combined: AdminEventResponseDto[] = [
-      ...adminEvents.map((event) => this.mapAdminEvent(event)),
-      ...stewardEvents.map((event) => this.mapStewardEvent(event)),
-    ];
-
-    combined.sort((a, b) => compareChronological(a, b));
-    return combined;
+    const mapped = events.map((event) => this.mapAdminEvent(event));
+    mapped.sort((a, b) => compareChronological(a, b));
+    return mapped;
   }
 
   private buildWhere(
     filters: AdminEventQueryDto,
-  ): FindOptionsWhere<AdminEvent> & FindOptionsWhere<StewardEvent> {
-    const where: FindOptionsWhere<AdminEvent> & FindOptionsWhere<StewardEvent> =
-      {};
+  ): FindOptionsWhere<AdminEvent> {
+    const where: FindOptionsWhere<AdminEvent> = {};
     if (filters.site_id) {
       where.site = { id: filters.site_id };
-    }
-    if (filters.event_type) {
-      where.eventType = filters.event_type;
     }
     return where;
   }
@@ -76,26 +48,11 @@ export class EventsService {
       date: normalizeDate(event.date),
       time: normalizeTime(event.time),
       description: event.description,
-      eventType: event.eventType,
-      sourceType: EventSourceType.LUMA,
     };
     if (event.registrationLink) {
       dto.registrationLink = event.registrationLink;
     }
     return dto;
-  }
-
-  private mapStewardEvent(event: StewardEvent): AdminEventResponseDto {
-    return {
-      id: event.id,
-      site: { id: event.site.id, name: event.site.name },
-      name: event.name,
-      date: normalizeDate(event.date),
-      time: normalizeTime(event.time),
-      description: event.description,
-      eventType: event.eventType,
-      sourceType: EventSourceType.STEWARD,
-    };
   }
 }
 
@@ -119,7 +76,6 @@ function normalizeTime(value: string | Date): string {
     )}`;
   }
   const asString = String(value);
-  // TIME columns typically come back as "HH:MM:SS".
   const match = asString.match(/(\d{2}:\d{2}:\d{2})/);
   return match ? match[1] : asString.slice(0, 8);
 }

@@ -22,9 +22,6 @@ export class AdminEvent {
   @Column()
   description!: string;
 
-  @Column()
-  eventType!: string;
-
   @Column({ type: 'date' })
   date!: string;
 

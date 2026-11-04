@@ -22,13 +22,7 @@ export class StewardEvent {
   steward!: User;
 
   @Column()
-  name!: string;
-
-  @Column()
   description!: string;
-
-  @Column()
-  eventType!: string;
 
   @Column({ type: 'date' })
   date!: string;
