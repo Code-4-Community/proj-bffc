@@ -7,6 +7,7 @@ import AppDataSource from './data-source';
 import { CognitoModule } from './aws/cognito/cognito.module';
 import { UsersModule } from './users/users.module';
 import { SitesModule } from './sites/sites.module';
+import { AnnouncementsModule } from './announcements/announcements.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { SitesModule } from './sites/sites.module';
     CognitoModule,
     UsersModule,
     SitesModule,
+    AnnouncementsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

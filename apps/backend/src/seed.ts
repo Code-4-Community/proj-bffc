@@ -189,16 +189,23 @@ async function seed() {
     }),
   );
 
-  // Announcements — excluded from GET /site/{id} per the ticket, but
-  // seeded anyway so that exclusion is actually testable
-  await announcementRepo.save(
+  // Announcements — excluded from GET /site/{id}; listed by
+  // GET /announcement/{site_id}. site1 has two (newest first);
+  // site2 is left empty so that endpoint can return [].
+  await announcementRepo.save([
     announcementRepo.create({
       date: '2026-09-20',
       info: 'Path repairs scheduled for next week — expect partial closures.',
       steward: stewardUser,
       site: site1,
     }),
-  );
+    announcementRepo.create({
+      date: '2026-10-12',
+      info: 'Paw paws are ripe — come pick this weekend.',
+      steward: stewardUser,
+      site: site1,
+    }),
+  ]);
 
   await AppDataSource.destroy();
   console.log('Seed complete.');
