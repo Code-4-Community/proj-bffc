@@ -16,7 +16,7 @@ export class StewardEventsService {
       where: { site: { id: siteId } },
       order: { date: 'ASC', time: 'ASC' },
     });
-    
+
     return events.map((event) => ({
       id: event.id,
       name: event.name,
