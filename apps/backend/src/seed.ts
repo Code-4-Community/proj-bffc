@@ -22,7 +22,8 @@ import AppDataSource from './data-source';
 import { User, UserType } from './entities/user.entity';
 import { Site, SiteType } from './entities/site.entity';
 import { Address } from './entities/address.entity';
-import { PlantInventory } from './entities/plant-inventory.entity';
+import { Neighborhood } from './entities/neighborhood.entity';
+import { Plant } from './entities/plant.entity';
 import { Image } from './entities/image.entity';
 import { Video } from './entities/video.entity';
 import { Testimonial } from './entities/testimonial.entity';
@@ -33,8 +34,9 @@ import {
   RecurringEvent,
   RecurrenceFrequency,
 } from './entities/recurring-event.entity';
+import { EventException } from './entities/event-exception.entity';
 import { Announcement } from './entities/announcement.entity';
-import { Point } from 'geojson';
+import { MultiPolygon, Point } from 'geojson';
 
 async function seed() {
   await AppDataSource.initialize();
@@ -42,7 +44,8 @@ async function seed() {
   const userRepo = AppDataSource.getRepository(User);
   const siteRepo = AppDataSource.getRepository(Site);
   const addressRepo = AppDataSource.getRepository(Address);
-  const plantRepo = AppDataSource.getRepository(PlantInventory);
+  const neighborhoodRepo = AppDataSource.getRepository(Neighborhood);
+  const plantRepo = AppDataSource.getRepository(Plant);
   const imageRepo = AppDataSource.getRepository(Image);
   const videoRepo = AppDataSource.getRepository(Video);
   const testimonialRepo = AppDataSource.getRepository(Testimonial);
@@ -50,6 +53,7 @@ async function seed() {
   const adminEventRepo = AppDataSource.getRepository(AdminEvent);
   const stewardEventRepo = AppDataSource.getRepository(StewardEvent);
   const recurringEventRepo = AppDataSource.getRepository(RecurringEvent);
+  const eventExceptionRepo = AppDataSource.getRepository(EventException);
   const announcementRepo = AppDataSource.getRepository(Announcement);
 
   console.log('Seeding database...');
@@ -97,6 +101,47 @@ async function seed() {
     }),
   );
 
+  // Neighborhoods — simplified rectangular boundaries around each site
+  const jamaicaPlain = await neighborhoodRepo.save(
+    neighborhoodRepo.create({
+      name: 'Jamaica Plain',
+      boundary: {
+        type: 'MultiPolygon',
+        coordinates: [
+          [
+            [
+              [-71.13, 42.295],
+              [-71.095, 42.295],
+              [-71.095, 42.325],
+              [-71.13, 42.325],
+              [-71.13, 42.295],
+            ],
+          ],
+        ],
+      } as MultiPolygon,
+    }),
+  );
+
+  const dorchester = await neighborhoodRepo.save(
+    neighborhoodRepo.create({
+      name: 'Dorchester',
+      boundary: {
+        type: 'MultiPolygon',
+        coordinates: [
+          [
+            [
+              [-71.09, 42.27],
+              [-71.04, 42.27],
+              [-71.04, 42.32],
+              [-71.09, 42.32],
+              [-71.09, 42.27],
+            ],
+          ],
+        ],
+      } as MultiPolygon,
+    }),
+  );
+
   // Addresses — Address is the owning side of the Site <-> Address relation
   await addressRepo.save(
     addressRepo.create({
@@ -109,6 +154,7 @@ async function seed() {
         coordinates: [-71.1097, 42.3092],
       } as Point,
       site: site1,
+      neighborhood: jamaicaPlain,
     }),
   );
 
@@ -123,23 +169,46 @@ async function seed() {
         coordinates: [-71.0827, 42.2887],
       } as Point,
       site: site2,
+      neighborhood: dorchester,
     }),
   );
 
-  // Plant inventory — site1 has two (with images), site2 has one
-  // without an image to test the null imageS3Key case
+  // Plants — Paw Paw grows at both sites (many-to-many); Highbush
+  // Blueberry has no image or recipes to test the empty cases
   await plantRepo.save([
     plantRepo.create({
       plantName: 'Paw Paw',
       imageS3Key: 'sites/egleston/plants/paw-paw.jpg',
-      site: site1,
+      description:
+        'A native understory tree producing the largest edible fruit in North America.',
+      flavor: 'Tropical — like a mix of banana, mango, and custard',
+      harvestSeason: 'Late August to early October',
+      howToHarvest:
+        'Gently squeeze; ripe fruit gives slightly like a peach and falls with a light tug.',
+      recipes: ['Paw Paw Bread', 'Paw Paw Ice Cream'],
+      hostSites: [site1, site2],
     }),
     plantRepo.create({
       plantName: 'American Persimmon',
       imageS3Key: 'sites/egleston/plants/american-persimmon.jpg',
-      site: site1,
+      description:
+        'A hardy native fruit tree whose fruit turns soft and sweet after the first frost.',
+      flavor: 'Rich and honey-like, similar to a date',
+      harvestSeason: 'October to November',
+      howToHarvest:
+        'Wait until the fruit is very soft and falls on its own, then collect from the ground.',
+      recipes: ['Persimmon Pudding'],
+      hostSites: [site1],
     }),
-    plantRepo.create({ plantName: 'Highbush Blueberry', site: site2 }),
+    plantRepo.create({
+      plantName: 'Highbush Blueberry',
+      description: 'A native shrub with clusters of small blue berries.',
+      flavor: 'Sweet and slightly tart',
+      harvestSeason: 'July to August',
+      howToHarvest:
+        'Roll ripe, fully blue berries off the cluster with your thumb.',
+      hostSites: [site2],
+    }),
   ]);
 
   // Images / videos — only site1 has media; site2 tests the empty-gallery case
@@ -163,13 +232,18 @@ async function seed() {
     }),
   );
 
-  // Partner orgs — only site2, so site1 tests the empty case
-  await partnerOrgRepo.save(
+  // Partner orgs — Boston Food Forest Coalition partners with both sites
+  // (many-to-many); The Trustees only partners with site2
+  await partnerOrgRepo.save([
+    partnerOrgRepo.create({
+      name: 'Boston Food Forest Coalition',
+      sites: [site1, site2],
+    }),
     partnerOrgRepo.create({
       name: 'The Trustees of Reservations',
-      site: site2,
+      sites: [site2],
     }),
-  );
+  ]);
 
   // Admin events (Luma-linked, staff) — fully populated, incl. flyer
   await adminEventRepo.save(
@@ -200,7 +274,7 @@ async function seed() {
 
   // Recurring events — site1's has an end date, end time, and flyer;
   // site2's repeats indefinitely with none of those, to test the null cases
-  await recurringEventRepo.save([
+  const [pruningWorkshop, communityWorkday] = await recurringEventRepo.save([
     recurringEventRepo.create({
       name: 'Monthly Orchard Pruning Workshop',
       description:
@@ -223,6 +297,24 @@ async function seed() {
       place: 'Fowler Clark Epstein Farm',
       frequency: RecurrenceFrequency.WEEKLY,
       site: site2,
+    }),
+  ]);
+
+  // Event exceptions — one cancelled occurrence and one rescheduled one
+  await eventExceptionRepo.save([
+    eventExceptionRepo.create({
+      event: communityWorkday,
+      originalDate: '2026-11-14',
+      cancelled: true,
+      reason: 'Cancelled due to rain',
+    }),
+    eventExceptionRepo.create({
+      event: pruningWorkshop,
+      originalDate: '2026-12-05',
+      cancelled: false,
+      reason: 'Moved to the afternoon for warmer weather',
+      newStartTime: new Date('2026-12-05T13:00:00-05:00'),
+      newDuration: 90,
     }),
   ]);
 

@@ -22,7 +22,7 @@ export class SitesService {
         'address',
         'images',
         'videos',
-        'plantInventory',
+        'plants',
         'partnerOrgs',
       ],
     });
@@ -73,7 +73,7 @@ export class SitesService {
         id: vid.id,
         url: this.buildS3Url(vid.s3Key),
       })),
-      plantInventory: (site.plantInventory ?? []).map((plant) => ({
+      plantInventory: (site.plants ?? []).map((plant) => ({
         id: plant.id,
         plantName: plant.plantName,
       })),

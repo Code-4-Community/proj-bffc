@@ -6,12 +6,13 @@ import {
   JoinColumn,
   OneToMany,
   OneToOne,
+  ManyToMany,
 } from 'typeorm';
 import { User } from './user.entity';
 import { AdminEvent } from './admin-event.entity';
 import { StewardEvent } from './steward-event.entity';
 import { RecurringEvent } from './recurring-event.entity';
-import { PlantInventory } from './plant-inventory.entity';
+import { Plant } from './plant.entity';
 import { Image } from './image.entity';
 import { Video } from './video.entity';
 import { Testimonial } from './testimonial.entity';
@@ -65,8 +66,8 @@ export class Site {
   @OneToMany(() => RecurringEvent, (event) => event.site)
   recurringEvents!: RecurringEvent[];
 
-  @OneToMany(() => PlantInventory, (plant) => plant.site)
-  plantInventory!: PlantInventory[];
+  @ManyToMany(() => Plant, (plant) => plant.hostSites)
+  plants!: Plant[];
 
   @OneToMany(() => Image, (image) => image.site)
   images!: Image[];
@@ -80,6 +81,6 @@ export class Site {
   @OneToMany(() => Announcement, (announcement) => announcement.site)
   announcements!: Announcement[];
 
-  @OneToMany(() => PartnerOrg, (org) => org.site)
+  @ManyToMany(() => PartnerOrg, (org) => org.sites)
   partnerOrgs!: PartnerOrg[];
 }

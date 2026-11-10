@@ -3,9 +3,11 @@ import {
   PrimaryGeneratedColumn,
   Column,
   OneToOne,
+  ManyToOne,
   JoinColumn,
 } from 'typeorm';
 import { Site } from './site.entity';
+import { Neighborhood } from './neighborhood.entity';
 import { Point } from 'geojson';
 
 @Entity('addresses')
@@ -16,6 +18,10 @@ export class Address {
   @OneToOne(() => Site, (site) => site.address)
   @JoinColumn({ name: 'site_id' })
   site!: Site;
+
+  @ManyToOne(() => Neighborhood, (neighborhood) => neighborhood.addresses)
+  @JoinColumn({ name: 'neighborhood_id' })
+  neighborhood?: Neighborhood;
 
   @Column()
   street!: string;
