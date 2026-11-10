@@ -17,6 +17,9 @@ export class AdminEvent {
   site!: Site;
 
   @Column()
+  name!: string;
+
+  @Column()
   description!: string;
 
   @Column({ type: 'date' })
