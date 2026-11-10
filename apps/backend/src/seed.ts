@@ -128,14 +128,37 @@ async function seed() {
     plantRepo.create({ plantName: 'Highbush Blueberry', site: site2 }),
   ]);
 
-  // Images / videos — only site1 has media; site2 tests the empty-gallery case
+  // Images / videos — only site1 has media; site2 tests the empty-gallery case.
+  // Staggered uploadedAt values make the "newest first" ordering and pagination
+  // observable.
   await imageRepo.save([
-    imageRepo.create({ s3Key: 'sites/egleston/gallery-1.jpg', site: site1 }),
-    imageRepo.create({ s3Key: 'sites/egleston/gallery-2.jpg', site: site1 }),
+    imageRepo.create({
+      s3Key: 'sites/egleston/gallery-1.jpg',
+      title: 'Spring blossoms',
+      description: 'Fruit trees in full bloom along the main path.',
+      uploadedAt: new Date('2026-04-12T09:00:00Z'),
+      uploadedBy: adminUser,
+      site: site1,
+    }),
+    imageRepo.create({
+      s3Key: 'sites/egleston/gallery-2.jpg',
+      title: 'Summer harvest',
+      description: 'Volunteers gathering the first paw paws of the season.',
+      uploadedAt: new Date('2026-08-03T15:30:00Z'),
+      uploadedBy: stewardUser,
+      site: site1,
+    }),
   ]);
 
   await videoRepo.save(
-    videoRepo.create({ s3Key: 'sites/egleston/tour.mp4', site: site1 }),
+    videoRepo.create({
+      s3Key: 'sites/egleston/tour.mp4',
+      title: 'Walking tour',
+      description: 'A short guided tour of the orchard with the site steward.',
+      uploadedAt: new Date('2026-07-20T12:00:00Z'),
+      uploadedBy: adminUser,
+      site: site1,
+    }),
   );
 
   // Testimonials — only site1
@@ -201,16 +224,23 @@ async function seed() {
     }),
   );
 
-  // Announcements — excluded from GET /site/{id} per the ticket, but
-  // seeded anyway so that exclusion is actually testable
-  await announcementRepo.save(
+  // Announcements — excluded from GET /site/{id}; listed by
+  // GET /announcement/{site_id}. site1 has two (newest first);
+  // site2 is left empty so that endpoint can return [].
+  await announcementRepo.save([
     announcementRepo.create({
       date: '2026-09-20',
       info: 'Path repairs scheduled for next week — expect partial closures.',
       steward: stewardUser,
       site: site1,
     }),
-  );
+    announcementRepo.create({
+      date: '2026-10-12',
+      info: 'Paw paws are ripe — come pick this weekend.',
+      steward: stewardUser,
+      site: site1,
+    }),
+  ]);
 
   await AppDataSource.destroy();
   console.log('Seed complete.');
