@@ -36,11 +36,9 @@ describe('StewardEventsService', () => {
     });
   });
 
-  it('returns events tagged as steward-run for a site with events', async () => {
+  it('returns the events for a site with events', async () => {
     find.mockResolvedValue([event]);
-    expect(await service.findBySite(siteId)).toEqual([
-      { ...event, eventType: 'steward' },
-    ]);
+    expect(await service.findBySite(siteId)).toEqual([event]);
   });
 
   it('returns an empty array for a site with no events', async () => {

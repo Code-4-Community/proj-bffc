@@ -1,10 +1,11 @@
-import { Controller, Get, ParseUUIDPipe, Query, Public } from '@nestjs/common';
+import { Controller, Get, ParseUUIDPipe, Query } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
   ApiOkResponse,
   ApiBadRequestResponse,
 } from '@nestjs/swagger';
+import { Public } from '../aws/cognito/cognito.decorator';
 import { StewardEventsService } from './steward-events.service';
 import { StewardEventResponseDto } from './dto/steward-event-response.dto';
 
