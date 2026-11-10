@@ -1,4 +1,20 @@
 import { Request } from 'express';
+import {
+  AdminAddUserToGroupCommand,
+  AdminCreateUserCommand,
+  AdminDeleteUserCommand,
+  AdminDisableUserCommand,
+  AdminEnableUserCommand,
+  AdminRemoveUserFromGroupCommand,
+  CognitoIdentityProviderClient,
+} from '@aws-sdk/client-cognito-identity-provider';
+import {
+  ConflictException,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
+import { mockClient } from 'aws-sdk-client-mock';
+import { UserType } from '../../entities/user.entity';
 
 import { AuthConfigurationError } from './cognito.config';
 import { CognitoService } from './cognito.service';
@@ -119,6 +135,229 @@ describe('CognitoService', () => {
 
     it('returns null when auth is active and user is not on the request', () => {
       expect(service.getUser({ headers: {} } as TestRequest)).toBeNull();
+    });
+  });
+});
+
+describe('CognitoService admin functions', () => {
+  const cognitoMock = mockClient(CognitoIdentityProviderClient);
+  const POOL_ID = 'us-east-2_TestPool';
+  let service: CognitoService;
+
+  const awsError = (name: string) => Object.assign(new Error(name), { name });
+
+  beforeEach(() => {
+    cognitoMock.reset();
+    delete process.env.AUTH_DISABLED;
+    process.env.COGNITO_USER_POOL_ID = POOL_ID;
+    process.env.COGNITO_CLIENT_ID = '4h57k9lmno1pqrstuv2wxyz3ab';
+    process.env.COGNITO_REGION = 'us-east-2';
+    service = new CognitoService();
+  });
+
+  afterEach(() => {
+    restoreEnv();
+  });
+
+  describe('createUser', () => {
+    it('creates a verified user with the invite email suppressed and adds them to the group', async () => {
+      cognitoMock.on(AdminCreateUserCommand).resolves({
+        User: {
+          Enabled: true,
+          Attributes: [{ Name: 'sub', Value: 'abc-123' }],
+        },
+      });
+      cognitoMock.on(AdminAddUserToGroupCommand).resolves({});
+
+      const result = await service.createUser({
+        email: ' Steward@Example.com ',
+        role: UserType.STEWARD,
+      });
+
+      expect(result).toEqual({
+        username: 'steward@example.com',
+        sub: 'abc-123',
+        email: 'steward@example.com',
+        role: UserType.STEWARD,
+        enabled: true,
+      });
+      expect(
+        cognitoMock.commandCalls(AdminCreateUserCommand)[0].args[0].input,
+      ).toEqual({
+        UserPoolId: POOL_ID,
+        Username: 'steward@example.com',
+        UserAttributes: [
+          { Name: 'email', Value: 'steward@example.com' },
+          { Name: 'email_verified', Value: 'true' },
+        ],
+        MessageAction: 'SUPPRESS',
+      });
+      expect(
+        cognitoMock.commandCalls(AdminAddUserToGroupCommand)[0].args[0].input,
+      ).toEqual({
+        UserPoolId: POOL_ID,
+        Username: 'steward@example.com',
+        GroupName: 'stewards',
+      });
+    });
+
+    it('adds admins to the admins group', async () => {
+      cognitoMock.on(AdminCreateUserCommand).resolves({ User: {} });
+      cognitoMock.on(AdminAddUserToGroupCommand).resolves({});
+
+      await service.createUser({
+        email: 'a@example.com',
+        role: UserType.ADMIN,
+      });
+
+      expect(
+        cognitoMock.commandCalls(AdminAddUserToGroupCommand)[0].args[0].input
+          .GroupName,
+      ).toBe('admins');
+    });
+
+    it('throws ConflictException when the email already exists', async () => {
+      cognitoMock
+        .on(AdminCreateUserCommand)
+        .rejects(awsError('UsernameExistsException'));
+
+      await expect(
+        service.createUser({ email: 'a@example.com', role: UserType.STEWARD }),
+      ).rejects.toBeInstanceOf(ConflictException);
+      expect(cognitoMock.commandCalls(AdminAddUserToGroupCommand)).toHaveLength(
+        0,
+      );
+    });
+
+    it('throws InternalServerErrorException on an unexpected AWS error', async () => {
+      cognitoMock
+        .on(AdminCreateUserCommand)
+        .rejects(awsError('ServiceFailure'));
+
+      await expect(
+        service.createUser({ email: 'a@example.com', role: UserType.STEWARD }),
+      ).rejects.toBeInstanceOf(InternalServerErrorException);
+    });
+
+    it('deletes the new user and throws when the group assignment fails', async () => {
+      cognitoMock.on(AdminCreateUserCommand).resolves({ User: {} });
+      cognitoMock
+        .on(AdminAddUserToGroupCommand)
+        .rejects(awsError('ResourceNotFoundException'));
+      cognitoMock.on(AdminDeleteUserCommand).resolves({});
+
+      await expect(
+        service.createUser({ email: 'a@example.com', role: UserType.STEWARD }),
+      ).rejects.toBeInstanceOf(InternalServerErrorException);
+      expect(cognitoMock.commandCalls(AdminDeleteUserCommand)).toHaveLength(1);
+    });
+
+    it('throws InternalServerErrorException when Cognito is not configured', async () => {
+      process.env.AUTH_DISABLED = 'true';
+
+      await expect(
+        service.createUser({ email: 'a@example.com', role: UserType.STEWARD }),
+      ).rejects.toBeInstanceOf(InternalServerErrorException);
+      expect(cognitoMock.calls()).toHaveLength(0);
+    });
+  });
+
+  describe('addUserToGroup / removeUserFromGroup', () => {
+    it('adds a user to the group for their role', async () => {
+      cognitoMock.on(AdminAddUserToGroupCommand).resolves({});
+
+      await service.addUserToGroup('A@Example.com', UserType.ADMIN);
+
+      expect(
+        cognitoMock.commandCalls(AdminAddUserToGroupCommand)[0].args[0].input,
+      ).toEqual({
+        UserPoolId: POOL_ID,
+        Username: 'a@example.com',
+        GroupName: 'admins',
+      });
+    });
+
+    it('removes a user from the group for their role', async () => {
+      cognitoMock.on(AdminRemoveUserFromGroupCommand).resolves({});
+
+      await service.removeUserFromGroup('a@example.com', UserType.STEWARD);
+
+      expect(
+        cognitoMock.commandCalls(AdminRemoveUserFromGroupCommand)[0].args[0]
+          .input,
+      ).toEqual({
+        UserPoolId: POOL_ID,
+        Username: 'a@example.com',
+        GroupName: 'stewards',
+      });
+    });
+
+    it('throws NotFoundException when the user does not exist (add)', async () => {
+      cognitoMock
+        .on(AdminAddUserToGroupCommand)
+        .rejects(awsError('UserNotFoundException'));
+
+      await expect(
+        service.addUserToGroup('a@example.com', UserType.ADMIN),
+      ).rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    it('throws InternalServerErrorException on an unexpected AWS error (remove)', async () => {
+      cognitoMock
+        .on(AdminRemoveUserFromGroupCommand)
+        .rejects(awsError('ServiceFailure'));
+
+      await expect(
+        service.removeUserFromGroup('a@example.com', UserType.ADMIN),
+      ).rejects.toBeInstanceOf(InternalServerErrorException);
+    });
+  });
+
+  describe('disableUser / enableUser', () => {
+    it('disables a user', async () => {
+      cognitoMock.on(AdminDisableUserCommand).resolves({});
+
+      await service.disableUser('A@Example.com');
+
+      expect(
+        cognitoMock.commandCalls(AdminDisableUserCommand)[0].args[0].input,
+      ).toEqual({
+        UserPoolId: POOL_ID,
+        Username: 'a@example.com',
+      });
+    });
+
+    it('enables a user', async () => {
+      cognitoMock.on(AdminEnableUserCommand).resolves({});
+
+      await service.enableUser('a@example.com');
+
+      expect(
+        cognitoMock.commandCalls(AdminEnableUserCommand)[0].args[0].input,
+      ).toEqual({
+        UserPoolId: POOL_ID,
+        Username: 'a@example.com',
+      });
+    });
+
+    it('throws NotFoundException when disabling an unknown user', async () => {
+      cognitoMock
+        .on(AdminDisableUserCommand)
+        .rejects(awsError('UserNotFoundException'));
+
+      await expect(service.disableUser('a@example.com')).rejects.toBeInstanceOf(
+        NotFoundException,
+      );
+    });
+
+    it('throws InternalServerErrorException on an unexpected AWS error (enable)', async () => {
+      cognitoMock
+        .on(AdminEnableUserCommand)
+        .rejects(awsError('ServiceFailure'));
+
+      await expect(service.enableUser('a@example.com')).rejects.toBeInstanceOf(
+        InternalServerErrorException,
+      );
     });
   });
 });
