@@ -1,3 +1,5 @@
+import { UserType } from '../../entities/user.entity';
+
 // Resolved Cognito configuration derived from environment variables.
 export interface CognitoConfig {
   region: string; // AWS region (ex: us-east-1)
@@ -16,4 +18,22 @@ export interface AccessTokenPayload {
   client_id: string; // Client ID used during authentication (ex: <your client ID>)
   exp: number; // Expiration time (Unix timestamp)
   iat: number; // Issued at time (Unix timestamp)
+}
+
+// Role assigned to a Cognito account. Same values as the `users.type` column.
+export type CognitoRole = UserType;
+
+// Cognito group name for each role. The groups live in the user pool already.
+export const COGNITO_GROUPS: Record<CognitoRole, string> = {
+  [UserType.ADMIN]: 'admins',
+  [UserType.STEWARD]: 'stewards',
+};
+
+// What createUser returns for the account it created.
+export interface CognitoUserResult {
+  username: string; // Cognito username (the lowercased email)
+  sub?: string; // Cognito subject (unique id), when Cognito returns one
+  email: string;
+  role: CognitoRole;
+  enabled: boolean;
 }
