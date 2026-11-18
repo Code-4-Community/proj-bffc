@@ -10,6 +10,7 @@ import {
 import { User } from './user.entity';
 import { AdminEvent } from './admin-event.entity';
 import { StewardEvent } from './steward-event.entity';
+import { RecurringEvent } from './recurring-event.entity';
 import { PlantInventory } from './plant-inventory.entity';
 import { Image } from './image.entity';
 import { Video } from './video.entity';
@@ -55,6 +56,9 @@ export class Site {
 
   @OneToMany(() => StewardEvent, (event) => event.site)
   stewardEvents!: StewardEvent[];
+
+  @OneToMany(() => RecurringEvent, (event) => event.site)
+  recurringEvents!: RecurringEvent[];
 
   @OneToMany(() => PlantInventory, (plant) => plant.site)
   plantInventory!: PlantInventory[];
