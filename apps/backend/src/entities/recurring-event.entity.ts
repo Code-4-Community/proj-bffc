@@ -33,10 +33,16 @@ export class RecurringEvent {
   startDate!: string;
 
   @Column({ type: 'time' })
-  time!: string;
+  startTime!: string;
+
+  @Column({ type: 'time', nullable: true })
+  endTime?: string;
 
   @Column()
   place!: string;
+
+  @Column({ nullable: true })
+  flyerS3Key?: string;
 
   @Column({ type: 'enum', enum: RecurrenceFrequency })
   frequency!: RecurrenceFrequency;

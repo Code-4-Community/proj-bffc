@@ -46,7 +46,7 @@ export class EventsService {
       site: { id: event.site.id, name: event.site.name },
       name: event.name,
       date: normalizeDate(event.date),
-      time: normalizeTime(event.time),
+      time: normalizeTime(event.startTime),
       description: event.description,
     };
     if (event.registrationLink) {

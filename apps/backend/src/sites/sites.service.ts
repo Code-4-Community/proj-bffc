@@ -24,7 +24,6 @@ export class SitesService {
         'videos',
         'plantInventory',
         'partnerOrgs',
-        'volunteerOpportunities',
       ],
     });
 
@@ -42,6 +41,8 @@ export class SitesService {
       type: site.type,
       history: site.history,
       accessibility: site.accessibility,
+      foundingDate: site.foundingDate ?? null,
+      hoursOpen: site.hoursOpen ?? null,
       address: site.address
         ? {
             id: site.address.id,
@@ -80,13 +81,6 @@ export class SitesService {
         id: org.id,
         name: org.name,
       })),
-      volunteerOpportunities: (site.volunteerOpportunities ?? []).map(
-        (opp) => ({
-          id: opp.id,
-          name: opp.name,
-          date: opp.date,
-        }),
-      ),
     };
   }
 

@@ -15,7 +15,11 @@ const SITE_B = {
 } as Site;
 
 function adminEvent(
-  overrides: Partial<AdminEvent> & { id: string; date: string; time: string },
+  overrides: Partial<AdminEvent> & {
+    id: string;
+    date: string;
+    startTime: string;
+  },
 ): AdminEvent {
   return {
     name: 'Harvest',
@@ -35,7 +39,7 @@ describe('EventsService', () => {
     adminEvent({
       id: 'a-late',
       date: '2026-11-08',
-      time: '11:00:00',
+      startTime: '11:00:00',
       name: 'Winter Planning Workshop',
       description: 'Staff-led workshop',
       registrationLink: 'https://lu.ma/workshop',
@@ -44,7 +48,7 @@ describe('EventsService', () => {
     adminEvent({
       id: 'a-early',
       date: '2026-10-25',
-      time: '14:00:00',
+      startTime: '14:00:00',
       name: 'Fall Harvest Celebration',
       description: 'Cider and potluck',
       registrationLink: 'https://lu.ma/harvest',
@@ -94,17 +98,17 @@ describe('EventsService', () => {
         adminEvent({
           id: 'same-day-late',
           date: '2026-10-25',
-          time: '16:00:00',
+          startTime: '16:00:00',
         }),
         adminEvent({
           id: 'same-day-early',
           date: '2026-10-25',
-          time: '08:00:00',
+          startTime: '08:00:00',
         }),
         adminEvent({
           id: 'same-day-mid',
           date: '2026-10-25',
-          time: '08:00:00',
+          startTime: '08:00:00',
         }),
       ]);
 
@@ -121,7 +125,7 @@ describe('EventsService', () => {
         adminEvent({
           id: 'date-obj',
           date: new Date(2026, 9, 25) as unknown as string,
-          time: new Date(2026, 9, 25, 14, 30, 5) as unknown as string,
+          startTime: new Date(2026, 9, 25, 14, 30, 5) as unknown as string,
         }),
       ]);
 
@@ -152,7 +156,7 @@ describe('EventsService', () => {
         adminEvent({
           id: 'a-no-link',
           date: '2026-10-01',
-          time: '12:00:00',
+          startTime: '12:00:00',
           registrationLink: '',
         }),
       ]);

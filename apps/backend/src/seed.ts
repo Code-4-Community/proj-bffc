@@ -27,7 +27,6 @@ import { Image } from './entities/image.entity';
 import { Video } from './entities/video.entity';
 import { Testimonial } from './entities/testimonial.entity';
 import { PartnerOrg } from './entities/partner-org.entity';
-import { VolunteerOpportunity } from './entities/volunteer-opportunity.entity';
 import { AdminEvent } from './entities/admin-event.entity';
 import { StewardEvent } from './entities/steward-event.entity';
 import {
@@ -48,7 +47,6 @@ async function seed() {
   const videoRepo = AppDataSource.getRepository(Video);
   const testimonialRepo = AppDataSource.getRepository(Testimonial);
   const partnerOrgRepo = AppDataSource.getRepository(PartnerOrg);
-  const volunteerRepo = AppDataSource.getRepository(VolunteerOpportunity);
   const adminEventRepo = AppDataSource.getRepository(AdminEvent);
   const stewardEventRepo = AppDataSource.getRepository(StewardEvent);
   const recurringEventRepo = AppDataSource.getRepository(RecurringEvent);
@@ -81,6 +79,8 @@ async function seed() {
         'Founded in 2012 on a formerly vacant lot, transformed by neighborhood volunteers into a thriving food forest.',
       accessibility:
         'Wheelchair accessible via Washington St entrance; gravel paths throughout.',
+      foundingDate: '2012',
+      hoursOpen: 'Sunrise to sunset',
       type: SiteType.EXISTING_COALITION,
       steward: adminUser,
     }),
@@ -175,12 +175,13 @@ async function seed() {
     }),
   );
 
-  // Testimonials — only site1
+  // Testimonials — only site1, with a steward photo
   await testimonialRepo.save(
     testimonialRepo.create({
       question: 'Why do you volunteer here?',
       answer:
         'It’s the one place in the neighborhood where I feel connected to the land.',
+      stewardImageS3Key: 'sites/egleston/testimonials/jamie-chen.jpg',
       site: site1,
     }),
   );
@@ -193,25 +194,18 @@ async function seed() {
     }),
   );
 
-  // Volunteer opportunities
-  await volunteerRepo.save(
-    volunteerRepo.create({
-      name: 'Fall Mulching Day',
-      date: '2026-10-18',
-      site: site1,
-    }),
-  );
-
-  // Admin events (Luma-linked, staff)
+  // Admin events (Luma-linked, staff) — fully populated, incl. flyer
   await adminEventRepo.save([
     adminEventRepo.create({
       name: 'Fall Harvest Celebration',
       description:
         'Celebrate the season with neighbors — cider, tours, and a potluck.',
       date: '2026-10-25',
-      time: '14:00:00',
+      startTime: '14:00:00',
+      endTime: '17:00:00',
       place: 'Egleston Community Orchard',
       registrationLink: 'https://lu.ma/example-harvest',
+      flyerS3Key: 'sites/egleston/flyers/fall-harvest.pdf',
       site: site1,
     }),
     adminEventRepo.create({
@@ -219,35 +213,39 @@ async function seed() {
       description:
         'Staff-led workshop covering next season’s planting calendar.',
       date: '2026-11-08',
-      time: '11:00:00',
+      startTime: '11:00:00',
+      endTime: '13:00:00',
       place: 'Fowler Clark Epstein Farm',
       registrationLink: 'https://lu.ma/example-workshop',
       site: site2,
     }),
   ]);
 
-  // Steward events
+  // Steward events — has an end time but no flyer
   await stewardEventRepo.save(
     stewardEventRepo.create({
       description: 'Weekly Watering Shift',
       date: '2026-09-27',
-      time: '09:00:00',
+      startTime: '09:00:00',
+      endTime: '11:00:00',
       place: 'Fowler Clark Epstein Farm',
       site: site2,
       steward: stewardUser,
     }),
   );
 
-  // Recurring events — site1's has an end date; site2's repeats
-  // indefinitely to test the null endDate case
+  // Recurring events — site1's has an end date, end time, and flyer;
+  // site2's repeats indefinitely with none of those, to test the null cases
   await recurringEventRepo.save([
     recurringEventRepo.create({
       name: 'Monthly Orchard Pruning Workshop',
       description:
         'Learn seasonal pruning techniques for fruit trees. Tools provided.',
       startDate: '2026-11-07',
-      time: '10:00:00',
+      startTime: '10:00:00',
+      endTime: '12:00:00',
       place: 'Egleston Community Orchard',
+      flyerS3Key: 'sites/egleston/flyers/pruning-workshop.pdf',
       frequency: RecurrenceFrequency.MONTHLY,
       endDate: '2027-04-03',
       site: site1,
@@ -257,7 +255,7 @@ async function seed() {
       description:
         'Drop-in volunteer workday — weeding, planting, and general upkeep.',
       startDate: '2026-10-24',
-      time: '09:30:00',
+      startTime: '09:30:00',
       place: 'Fowler Clark Epstein Farm',
       frequency: RecurrenceFrequency.WEEKLY,
       site: site2,

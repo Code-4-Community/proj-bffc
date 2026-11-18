@@ -17,7 +17,6 @@ import { Video } from './video.entity';
 import { Testimonial } from './testimonial.entity';
 import { Announcement } from './announcement.entity';
 import { PartnerOrg } from './partner-org.entity';
-import { VolunteerOpportunity } from './volunteer-opportunity.entity';
 import { Address } from './address.entity';
 
 export enum SiteType {
@@ -48,6 +47,12 @@ export class Site {
   @Column()
   accessibility!: string;
 
+  @Column({ nullable: true })
+  foundingDate?: string;
+
+  @Column({ nullable: true })
+  hoursOpen?: string;
+
   @Column({ type: 'enum', enum: SiteType })
   type!: SiteType;
 
@@ -77,7 +82,4 @@ export class Site {
 
   @OneToMany(() => PartnerOrg, (org) => org.site)
   partnerOrgs!: PartnerOrg[];
-
-  @OneToMany(() => VolunteerOpportunity, (opp) => opp.site)
-  volunteerOpportunities!: VolunteerOpportunity[];
 }
