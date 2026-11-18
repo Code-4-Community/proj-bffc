@@ -10,6 +10,7 @@ import { SitesModule } from './sites/sites.module';
 import { EventsModule } from './events/events.module';
 import { MediaModule } from './media/media.module';
 import { AnnouncementsModule } from './announcements/announcements.module';
+import { PartnerOrgsModule } from './partner-orgs/partner-orgs.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { AnnouncementsModule } from './announcements/announcements.module';
     SitesModule,
     EventsModule,
     AnnouncementsModule,
+    PartnerOrgsModule,
     MediaModule,
   ],
   controllers: [AppController],
