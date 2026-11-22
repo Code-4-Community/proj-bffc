@@ -3,9 +3,11 @@ import {
   PrimaryGeneratedColumn,
   Column,
   ManyToOne,
+  OneToMany,
   JoinColumn,
 } from 'typeorm';
 import { Site } from './site.entity';
+import { EventException } from './event-exception.entity';
 
 export enum RecurrenceFrequency {
   DAILY = 'daily',
@@ -49,4 +51,7 @@ export class RecurringEvent {
 
   @Column({ type: 'date', nullable: true })
   endDate?: string;
+
+  @OneToMany(() => EventException, (exception) => exception.event)
+  exceptions!: EventException[];
 }
