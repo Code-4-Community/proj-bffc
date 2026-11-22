@@ -356,7 +356,7 @@ async function seed() {
 
   // Announcements — excluded from GET /site/{id} per the ticket, but
   // seeded anyway so that exclusion is actually testable
-  await announcementRepo.save(
+  await announcementRepo.save([
     announcementRepo.create({
       date: '2026-09-20',
       info: 'Path repairs scheduled for next week — expect partial closures.',
