@@ -1,0 +1,278 @@
+name: PR Review Status Update
+
+on:
+  pull_request_review:
+    types: [submitted]
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  update-status:
+    runs-on: ubuntu-latest
+    # Act on approvals, change requests, and comments. Skip draft (PENDING)
+    # reviews and PRs that opted out with `no-review`.
+    if: >-
+      (github.event.review.state == 'approved' ||
+       github.event.review.state == 'changes_requested' ||
+       github.event.review.state == 'commented') &&
+      !contains(github.event.pull_request.labels.*.name, 'no-review')
+    steps:
+      - name: Checkout bot-state branch
+        uses: actions/checkout@v4
+        with:
+          ref: bot-state
+          path: bot-state
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update Slack message and bot state
+        uses: actions/github-script@v7
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            const BOT_STATE_DIR = 'bot-state';
+            const configPath = path.join(BOT_STATE_DIR, 'config.json');
+            const prsDir = path.join(BOT_STATE_DIR, 'prs');
+
+            const reviewState = context.payload.review.state;
+            const reviewer = context.payload.review.user.login;
+            const prNumber = context.payload.pull_request.number;
+            const prUrl = context.payload.pull_request.html_url;
+            const prTitle = context.payload.pull_request.title;
+
+            console.log(`Review submitted: ${reviewer} → ${reviewState} on PR #${prNumber}`);
+
+            if (!fs.existsSync(configPath)) {
+              console.log('config.json not found. Skipping.');
+              return;
+            }
+            const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+
+            const prFileKey = `${context.repo.owner}_${context.repo.repo}_${prNumber}`;
+            const prFilePath = path.join(prsDir, `${prFileKey}.json`);
+
+            if (!fs.existsSync(prFilePath)) {
+              console.log(`No per-PR file for #${prNumber}. Not tracked by the bot.`);
+              return;
+            }
+
+            const prData = JSON.parse(fs.readFileSync(prFilePath, 'utf8'));
+
+            async function slackApi(method, body) {
+              try {
+                const resp = await fetch(`https://slack.com/api/${method}`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${process.env.SLACK_BOT_TOKEN}`,
+                  },
+                  body: JSON.stringify(body),
+                });
+                const data = await resp.json();
+                if (!data.ok) console.log(`Slack ${method} error: ${data.error}`);
+                return data;
+              } catch (err) {
+                console.log(`Slack ${method} failed: ${err.message}`);
+                return { ok: false };
+              }
+            }
+
+            const STATUS_EMOJI = {
+              pending:           ':hourglass_flowing_sand:',
+              approved:          ':approved:',
+              changes_requested: ':git-request-changes:',
+              commented:         ':git-comment:',
+            };
+            const STATUS_LABEL = {
+              pending:           'Pending',
+              approved:          'Approved',
+              changes_requested: 'Changes Requested',
+              commented:         'Commented',
+            };
+
+            function buildBlocks({ prUrl, prNumber, prTitle, prAuthor, reviewers, bothApproved, anyChangesRequested }) {
+              const allDone = reviewers.every(r => r.status !== 'pending');
+
+              let headerText;
+              if (bothApproved) {
+                headerText = ':approved: Approval Requirement Met';
+              } else if (anyChangesRequested) {
+                headerText = ':git-request-changes: Changes Requested';
+              } else if (allDone) {
+                headerText = ':white_check_mark: All Reviews Complete';
+              } else {
+                headerText = ':evergreen_tree: Review Requested';
+              }
+
+              const reviewerLines = reviewers.map(r =>
+                `${STATUS_EMOJI[r.status]}  <@${r.slack}> — ${STATUS_LABEL[r.status]}`
+              );
+
+              const infoText = (allDone || bothApproved)
+                ? `*<${prUrl}|#${prNumber} ${prTitle}>*\nAuthor: *${prAuthor}*`
+                : `*<${prUrl}|#${prNumber} ${prTitle}>*\nAuthor: *${prAuthor}*\n_Please review as soon as you can! Thank you!_`;
+
+              return [
+                {
+                  type: 'header',
+                  text: { type: 'plain_text', text: headerText, emoji: true },
+                },
+                {
+                  type: 'section',
+                  text: { type: 'mrkdwn', text: infoText },
+                },
+                { type: 'divider' },
+                {
+                  type: 'section',
+                  text: { type: 'mrkdwn', text: reviewerLines.join('\n') },
+                },
+              ];
+            }
+
+            let allReviews = [];
+            try {
+              const resp = await github.rest.pulls.listReviews({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNumber,
+              });
+              allReviews = resp.data;
+            } catch (err) {
+              console.log(`Could not fetch reviews: ${err.message}`);
+            }
+
+            const REVIEW_STATES = ['APPROVED', 'CHANGES_REQUESTED', 'COMMENTED'];
+
+            function getLatestStatus(login) {
+              const userReviews = allReviews.filter(
+                r => r.user.login.toLowerCase() === login.toLowerCase() &&
+                  REVIEW_STATES.includes(r.state)
+              );
+              if (userReviews.length === 0) return 'pending';
+              return userReviews[userReviews.length - 1].state.toLowerCase();
+            }
+
+            const mainStatus = getLatestStatus(prData.main_reviewer);
+            const reviewerObjs = [
+              { login: prData.main_reviewer, slack: prData.main_reviewer_slack, status: mainStatus },
+            ];
+
+            let secondStatus = null;
+            if (prData.second_reviewer) {
+              secondStatus = getLatestStatus(prData.second_reviewer);
+              reviewerObjs.push({
+                login: prData.second_reviewer,
+                slack: prData.second_reviewer_slack,
+                status: secondStatus,
+              });
+            }
+
+            const bothApproved = mainStatus === 'approved' && secondStatus === 'approved';
+            const anyChangesRequested = reviewerObjs.some(r => r.status === 'changes_requested');
+            const allDone = reviewerObjs.every(r => r.status !== 'pending');
+
+            if (prData.slack_thread_ts) {
+              const blocks = buildBlocks({
+                prUrl, prNumber, prTitle, prAuthor: prData.author,
+                reviewers: reviewerObjs,
+                bothApproved,
+                anyChangesRequested,
+              });
+
+              await slackApi('chat.update', {
+                channel: config.slack_channel_id,
+                ts: prData.slack_thread_ts,
+                text: `PR #${prNumber}: ${bothApproved || allDone ? 'reviews complete' : 'review in progress'}`,
+                blocks,
+              });
+              console.log(`Updated Slack message for PR #${prNumber}`);
+            }
+
+            const reviewerSlack = config.github_to_slack[reviewer];
+            const mention = reviewerSlack ? `<@${reviewerSlack}>` : `*${reviewer}*`;
+            const emoji =
+              reviewState === 'approved' ? ':approved:' :
+              reviewState === 'changes_requested' ? ':git-request-changes:' :
+              ':git-comment:';
+            const verb =
+              reviewState === 'approved' ? 'approved' :
+              reviewState === 'changes_requested' ? 'requested changes on' :
+              'commented on';
+
+            if (prData.slack_thread_ts) {
+              await slackApi('chat.postMessage', {
+                channel: config.slack_channel_id,
+                thread_ts: prData.slack_thread_ts,
+                text: `${emoji} ${mention} ${verb} <${prData.pr_url}|PR #${prNumber}>`,
+              });
+            }
+
+            const authorSlackId = config.github_to_slack[prData.author];
+            if (authorSlackId) {
+              await slackApi('chat.postMessage', {
+                channel: authorSlackId,
+                text: `${mention} ${verb} <${prUrl}|PR #${prNumber} ${prTitle}>`,
+              });
+              console.log(`Pinged author ${prData.author} about ${reviewState} on PR #${prNumber}`);
+            }
+
+            if (bothApproved && prData.status === 'open' && authorSlackId) {
+              const dmBlocks = [
+                {
+                  type: 'header',
+                  text: { type: 'plain_text', text: ':approved: Your PR is Approved', emoji: true },
+                },
+                {
+                  type: 'section',
+                  text: {
+                    type: 'mrkdwn',
+                    text: `*<${prUrl}|#${prNumber} ${prTitle}>* has 2 approvals and is ready to merge!`,
+                  },
+                },
+              ];
+
+              await slackApi('chat.postMessage', {
+                channel: authorSlackId,
+                text: `PR #${prNumber} has 2 approvals and is ready to merge!`,
+                blocks: dmBlocks,
+              });
+              console.log(`DM'd author ${prData.author} — PR #${prNumber} ready to merge`);
+            }
+
+            if ((bothApproved || allDone) && prData.status === 'open') {
+              prData.status = 'reviewed';
+              prData.resolved_at = new Date().toISOString();
+              fs.writeFileSync(prFilePath, JSON.stringify(prData, null, 2) + '\n');
+              console.log(`Review completion detected — marked PR #${prNumber} as reviewed`);
+            }
+
+      - name: Commit and push bot-state
+        working-directory: bot-state
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+
+          git commit -m "bot: mark PR #${{ github.event.pull_request.number }} as reviewed"
+
+          for attempt in 1 2 3; do
+            if git pull --rebase origin bot-state && git push origin bot-state; then
+              echo "Push succeeded (attempt $attempt)"
+              exit 0
+            fi
+            echo "Push attempt $attempt failed, retrying in 2s…"
+            sleep 2
+          done
+
+          echo "::error::Failed to push bot-state after 3 attempts"
+          exit 1
