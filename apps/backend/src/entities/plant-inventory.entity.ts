@@ -18,4 +18,7 @@ export class PlantInventory {
 
   @Column()
   plantName!: string;
+
+  @Column({ nullable: true })
+  imageS3Key?: string;
 }
