@@ -4,7 +4,7 @@ import { NotFoundException } from '@nestjs/common';
 import { IS_PUBLIC_KEY } from '../aws/cognito/cognito.decorator';
 import { RecurringEventController } from './recurring-event.controller';
 import { RecurringEventService } from './recurring-event.service';
-import { RecurringEventResponseDto } from './dto/recurring-event-response.dto';
+import { PaginatedRecurringEventsDto } from './dto/recurring-event-response.dto';
 import { SortOrder } from './dto/recurring-event-query.dto';
 
 describe('RecurringEventController', () => {
@@ -12,17 +12,22 @@ describe('RecurringEventController', () => {
   let mockService: { findAllBySiteId: jest.Mock };
 
   const siteId = '1a3cc442-d41f-421d-af8e-311781e6c033';
-  const sample: RecurringEventResponseDto[] = [
-    {
-      id: 'event-1',
-      site: { id: siteId, name: 'Forest Hills Community Garden' },
-      name: 'Fall Harvest Festival',
-      date: '2026-10-25',
-      time: '14:00:00',
-      description: 'Join us for the annual harvest celebration',
-      place: 'Main Garden Area',
-    },
-  ];
+  const sample: PaginatedRecurringEventsDto = {
+    data: [
+      {
+        id: 'event-1',
+        site: { id: siteId, name: 'Forest Hills Community Garden' },
+        name: 'Fall Harvest Festival',
+        date: '2026-10-25',
+        time: '14:00:00',
+        description: 'Join us for the annual harvest celebration',
+        place: 'Main Garden Area',
+      },
+    ],
+    total: 1,
+    page: 1,
+    limit: 10,
+  };
 
   beforeEach(async () => {
     mockService = { findAllBySiteId: jest.fn() };
@@ -53,12 +58,18 @@ describe('RecurringEventController', () => {
     expect(mockService.findAllBySiteId).toHaveBeenCalledWith(siteId, query);
   });
 
-  it('returns an empty array when the site has no events', async () => {
-    mockService.findAllBySiteId.mockResolvedValue([]);
+  it('returns empty data array when the site has no events', async () => {
+    const emptyResponse: PaginatedRecurringEventsDto = {
+      data: [],
+      total: 0,
+      page: 1,
+      limit: 10,
+    };
+    mockService.findAllBySiteId.mockResolvedValue(emptyResponse);
 
     await expect(
       controller.getRecurringEventsBySite(siteId, {}),
-    ).resolves.toEqual([]);
+    ).resolves.toEqual(emptyResponse);
   });
 
   it('propagates NotFoundException when the site does not exist', async () => {

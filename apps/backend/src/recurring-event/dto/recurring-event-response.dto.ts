@@ -39,3 +39,20 @@ export class RecurringEventResponseDto {
   @ApiProperty({ description: 'Meeting location or place' })
   place!: string;
 }
+
+/**
+ * Paginated response for recurring events.
+ */
+export class PaginatedRecurringEventsDto {
+  @ApiProperty({ type: [RecurringEventResponseDto] })
+  data!: RecurringEventResponseDto[];
+
+  @ApiProperty({ description: 'Total number of events' })
+  total!: number;
+
+  @ApiProperty({ description: 'Current page number' })
+  page!: number;
+
+  @ApiProperty({ description: 'Number of items per page' })
+  limit!: number;
+}

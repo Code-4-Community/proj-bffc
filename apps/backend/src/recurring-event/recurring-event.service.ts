@@ -8,7 +8,10 @@ import {
   RecurringEventQueryDto,
   SortOrder,
 } from './dto/recurring-event-query.dto';
-import { RecurringEventResponseDto } from './dto/recurring-event-response.dto';
+import {
+  PaginatedRecurringEventsDto,
+  RecurringEventResponseDto,
+} from './dto/recurring-event-response.dto';
 
 @Injectable()
 export class RecurringEventService {
@@ -20,13 +23,13 @@ export class RecurringEventService {
   ) {}
 
   /**
-   * All recurring events for `siteId`, sorted by date.
-   * Unknown site -> 404. Known site with no events -> `[]`.
+   * All recurring events for `siteId`, sorted by date with pagination.
+   * Unknown site -> 404. Known site with no events -> empty data array.
    */
   async findAllBySiteId(
     siteId: string,
     query: RecurringEventQueryDto,
-  ): Promise<RecurringEventResponseDto[]> {
+  ): Promise<PaginatedRecurringEventsDto> {
     const siteExists = await this.siteRepo.exists({ where: { id: siteId } });
     if (!siteExists) {
       throw new NotFoundException(`Site with ID ${siteId} not found`);
@@ -37,7 +40,7 @@ export class RecurringEventService {
     const limit = query.limit ?? 10;
     const skip = (page - 1) * limit;
 
-    const events = await this.recurringEventRepo.find({
+    const [events, total] = await this.recurringEventRepo.findAndCount({
       where: { site: { id: siteId } },
       relations: { site: true },
       order: { startDate: order, startTime: order, id: 'ASC' },
@@ -45,7 +48,12 @@ export class RecurringEventService {
       take: limit,
     });
 
-    return events.map((event) => this.mapToDto(event));
+    return {
+      data: events.map((event) => this.mapToDto(event)),
+      total,
+      page,
+      limit,
+    };
   }
 
   private mapToDto(event: RecurringEvent): RecurringEventResponseDto {

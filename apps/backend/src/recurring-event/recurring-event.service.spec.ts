@@ -32,11 +32,11 @@ function recurringEvent(
 
 describe('RecurringEventService', () => {
   let service: RecurringEventService;
-  let recurringEventRepo: { find: jest.Mock };
+  let recurringEventRepo: { findAndCount: jest.Mock };
   let siteRepo: { exists: jest.Mock };
 
   beforeEach(async () => {
-    recurringEventRepo = { find: jest.fn().mockResolvedValue([]) };
+    recurringEventRepo = { findAndCount: jest.fn().mockResolvedValue([[], 0]) };
     siteRepo = { exists: jest.fn().mockResolvedValue(true) };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -60,31 +60,37 @@ describe('RecurringEventService', () => {
       await expect(service.findAllBySiteId(SITE_ID, {})).rejects.toThrow(
         NotFoundException,
       );
-      expect(recurringEventRepo.find).not.toHaveBeenCalled();
+      expect(recurringEventRepo.findAndCount).not.toHaveBeenCalled();
     });
 
-    it('returns an empty array when the site has no events', async () => {
-      recurringEventRepo.find.mockResolvedValue([]);
+    it('returns empty data array when the site has no events', async () => {
+      recurringEventRepo.findAndCount.mockResolvedValue([[], 0]);
 
-      await expect(service.findAllBySiteId(SITE_ID, {})).resolves.toEqual([]);
+      const result = await service.findAllBySiteId(SITE_ID, {});
+
+      expect(result.data).toEqual([]);
+      expect(result.total).toBe(0);
       expect(siteRepo.exists).toHaveBeenCalledWith({ where: { id: SITE_ID } });
     });
 
     it('maps event fields to response DTO', async () => {
-      recurringEventRepo.find.mockResolvedValue([
-        recurringEvent({
-          id: 'event-1',
-          startDate: '2026-10-25',
-          startTime: '14:00:00',
-          name: 'Fall Harvest Festival',
-          description: 'Join us for the annual harvest celebration',
-          place: 'Main Garden Area',
-        }),
+      recurringEventRepo.findAndCount.mockResolvedValue([
+        [
+          recurringEvent({
+            id: 'event-1',
+            startDate: '2026-10-25',
+            startTime: '14:00:00',
+            name: 'Fall Harvest Festival',
+            description: 'Join us for the annual harvest celebration',
+            place: 'Main Garden Area',
+          }),
+        ],
+        1,
       ]);
 
-      const [result] = await service.findAllBySiteId(SITE_ID, {});
+      const result = await service.findAllBySiteId(SITE_ID, {});
 
-      expect(result).toEqual({
+      expect(result.data[0]).toEqual({
         id: 'event-1',
         site: { id: SITE_ID, name: 'Forest Hills Community Garden' },
         name: 'Fall Harvest Festival',
@@ -95,10 +101,32 @@ describe('RecurringEventService', () => {
       });
     });
 
+    it('returns pagination metadata correctly', async () => {
+      recurringEventRepo.findAndCount.mockResolvedValue([
+        [
+          recurringEvent({
+            id: 'event-1',
+            startDate: '2026-10-25',
+            startTime: '14:00:00',
+          }),
+        ],
+        25,
+      ]);
+
+      const result = await service.findAllBySiteId(SITE_ID, {
+        page: 2,
+        limit: 5,
+      });
+
+      expect(result.total).toBe(25);
+      expect(result.page).toBe(2);
+      expect(result.limit).toBe(5);
+    });
+
     it('queries events with default ascending order', async () => {
       await service.findAllBySiteId(SITE_ID, {});
 
-      expect(recurringEventRepo.find).toHaveBeenCalledWith({
+      expect(recurringEventRepo.findAndCount).toHaveBeenCalledWith({
         where: { site: { id: SITE_ID } },
         relations: { site: true },
         order: { startDate: 'ASC', startTime: 'ASC', id: 'ASC' },
@@ -110,7 +138,7 @@ describe('RecurringEventService', () => {
     it('queries events with descending order when specified', async () => {
       await service.findAllBySiteId(SITE_ID, { order: SortOrder.DESC });
 
-      expect(recurringEventRepo.find).toHaveBeenCalledWith({
+      expect(recurringEventRepo.findAndCount).toHaveBeenCalledWith({
         where: { site: { id: SITE_ID } },
         relations: { site: true },
         order: { startDate: 'DESC', startTime: 'DESC', id: 'ASC' },
@@ -122,7 +150,7 @@ describe('RecurringEventService', () => {
     it('applies pagination parameters', async () => {
       await service.findAllBySiteId(SITE_ID, { page: 2, limit: 5 });
 
-      expect(recurringEventRepo.find).toHaveBeenCalledWith({
+      expect(recurringEventRepo.findAndCount).toHaveBeenCalledWith({
         where: { site: { id: SITE_ID } },
         relations: { site: true },
         order: { startDate: 'ASC', startTime: 'ASC', id: 'ASC' },
@@ -132,17 +160,20 @@ describe('RecurringEventService', () => {
     });
 
     it('normalizes TypeORM Date objects into expected formats', async () => {
-      recurringEventRepo.find.mockResolvedValue([
-        recurringEvent({
-          id: 'date-obj',
-          startDate: new Date(2026, 9, 25) as unknown as string,
-          startTime: new Date(1970, 0, 1, 14, 30, 0) as unknown as string,
-        }),
+      recurringEventRepo.findAndCount.mockResolvedValue([
+        [
+          recurringEvent({
+            id: 'date-obj',
+            startDate: new Date(2026, 9, 25) as unknown as string,
+            startTime: new Date(1970, 0, 1, 14, 30, 0) as unknown as string,
+          }),
+        ],
+        1,
       ]);
 
-      const [result] = await service.findAllBySiteId(SITE_ID, {});
-      expect(result.date).toBe('2026-10-25');
-      expect(result.time).toBe('14:30:00');
+      const result = await service.findAllBySiteId(SITE_ID, {});
+      expect(result.data[0].date).toBe('2026-10-25');
+      expect(result.data[0].time).toBe('14:30:00');
     });
   });
 });
