@@ -12,6 +12,7 @@ export interface CognitoConfig {
 // Cognito access token: https://docs.aws.amazon.com/cognito/latest/developerguide/amazon-cognito-user-pools-using-the-access-token.html
 export interface AccessTokenPayload {
   sub: string; // Subject (unique identifier for the user)
+  username?: string; // Cognito username. CognitoService.createUser sets it to the lowercased email.
   'cognito:groups'?: string[]; // Groups (ex: ['admin', 'user'])
   iss: string; // Issuer (ex: https://cognito-idp.<Region>.amazonaws.com/<your user pool ID>)
   token_use: 'access'; // Token use (ID or access token from Cognito)

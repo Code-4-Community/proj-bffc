@@ -9,7 +9,7 @@ export class AdminEventSiteDto {
 }
 
 /**
- * Luma-linked admin event returned by `GET /adminEvent`.
+ * Luma-linked admin event returned by `GET /adminEvent` and `POST /adminEvent`.
  */
 export class AdminEventResponseDto {
   @ApiProperty({ format: 'uuid' })
@@ -33,8 +33,20 @@ export class AdminEventResponseDto {
   })
   time!: string;
 
+  @ApiPropertyOptional({
+    description: 'Local end time (HH:MM:SS)',
+    example: '16:00:00',
+  })
+  endTime?: string;
+
   @ApiProperty()
   description!: string;
+
+  @ApiProperty({ description: 'Where the event happens' })
+  place!: string;
+
+  @ApiPropertyOptional({ description: 'S3 key of the event flyer' })
+  flyerS3Key?: string;
 
   @ApiPropertyOptional({
     description: 'Registration URL, when the event has one',
