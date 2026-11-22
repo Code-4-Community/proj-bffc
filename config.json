@@ -1,0 +1,14 @@
+{
+  "slack_channel_id": "C0CEVJ4880N",
+  "github_to_slack": {
+    "mehanana": "U084AMND8FK",
+    "saumyapalk23": "U09EYETUEGP",
+    "anjalisilina": "U08N8N6KBR9",
+    "piersolh": "U07N5354VRU",
+    "ducan-le": "U0C4X955DA8",
+    "bodhiYG": "U09FEFVUJ5Q",
+    "jxuistrying": "U0ASQ3JEG0L"
+  },
+  "leads": ["mehanana", "saumyapalk23"],
+  "roster": ["anjalisilina", "piersolh", "ducan-le", "bodhiYG", "jxuistrying"]
+}
