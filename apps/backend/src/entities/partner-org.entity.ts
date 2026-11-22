@@ -2,21 +2,23 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  ManyToOne,
-  JoinColumn,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
 import { Site } from './site.entity';
 
-// NOTE: modeled as one-to-many (site -> many orgs). If an org can also
-// belong to multiple sites, this needs to become a ManyToMany with a join table.
 @Entity('partner_orgs')
 export class PartnerOrg {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @ManyToOne(() => Site, (site) => site.partnerOrgs)
-  @JoinColumn({ name: 'site_id' })
-  site!: Site;
+  @ManyToMany(() => Site, (site) => site.partnerOrgs)
+  @JoinTable({
+    name: 'site_partners',
+    joinColumn: { name: 'partner_org_id' },
+    inverseJoinColumn: { name: 'site_id' },
+  })
+  sites!: Site[];
 
   @Column()
   name!: string;
