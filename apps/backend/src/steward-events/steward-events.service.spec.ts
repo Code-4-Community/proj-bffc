@@ -10,7 +10,8 @@ describe('StewardEventsService', () => {
     name: 'Community Workday',
     description: 'Monthly cleanup and mulching.',
     date: '2026-09-20',
-    time: '10:00:00',
+    startTime: '10:00:00',
+    endTime: '13:00:00',
     place: 'Meet at the barn',
   };
   let service: StewardEventsService;
@@ -32,7 +33,7 @@ describe('StewardEventsService', () => {
     await service.findBySite(siteId);
     expect(find).toHaveBeenCalledWith({
       where: { site: { id: siteId } },
-      order: { date: 'ASC', time: 'ASC' },
+      order: { date: 'ASC', startTime: 'ASC' },
     });
   });
 
