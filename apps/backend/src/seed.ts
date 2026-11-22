@@ -349,7 +349,7 @@ async function seed() {
       originalDate: '2026-12-05',
       cancelled: false,
       reason: 'Moved to the afternoon for warmer weather',
-      newStartTime: new Date('2026-12-05T13:00:00-05:00'),
+      newStartTime: '2026-12-05T13:00:00-05:00',
       newDuration: 90,
     }),
   ]);
