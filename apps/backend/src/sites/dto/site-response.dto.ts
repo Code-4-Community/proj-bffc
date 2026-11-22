@@ -6,7 +6,6 @@ import { ImageDto } from './image.dto';
 import { VideoDto } from './video.dto';
 import { PlantDto } from './plant.dto';
 import { PartnerOrgDto } from './partner-org.dto';
-import { VolunteerOpportunityDto } from './volunteer-opportunity.dto';
 
 export class SiteResponseDto {
   @ApiProperty({ description: 'Unique site identifier', format: 'uuid' })
@@ -27,6 +26,20 @@ export class SiteResponseDto {
 
   @ApiProperty({ description: 'Accessibility information' })
   accessibility: string;
+
+  @ApiPropertyOptional({
+    description: 'Year or date the site was founded',
+    example: '2012',
+    nullable: true,
+  })
+  foundingDate: string | null;
+
+  @ApiPropertyOptional({
+    description: 'Hours the site is open',
+    example: 'Sunrise to sunset',
+    nullable: true,
+  })
+  hoursOpen: string | null;
 
   @ApiPropertyOptional({
     type: AddressDto,
@@ -53,12 +66,6 @@ export class SiteResponseDto {
     description: 'Plant inventory / Meet the plants',
   })
   plantInventory: PlantDto[];
-
-  @ApiProperty({
-    type: [VolunteerOpportunityDto],
-    description: 'Volunteer opportunities',
-  })
-  volunteerOpportunities: VolunteerOpportunityDto[];
 
   @ApiProperty({ type: [PartnerOrgDto], description: 'Partner organizations' })
   partnerOrgs: PartnerOrgDto[];

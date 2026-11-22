@@ -28,8 +28,14 @@ export class StewardEvent {
   date!: string;
 
   @Column({ type: 'time' })
-  time!: string;
+  startTime!: string;
+
+  @Column({ type: 'time', nullable: true })
+  endTime?: string;
 
   @Column()
   place!: string;
+
+  @Column({ nullable: true })
+  flyerS3Key?: string;
 }
