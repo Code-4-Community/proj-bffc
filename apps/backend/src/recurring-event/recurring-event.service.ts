@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { AdminEvent } from '../entities/admin-event.entity';
+import { RecurringEvent } from '../entities/recurring-event.entity';
 import { Site } from '../entities/site.entity';
 import {
   RecurringEventQueryDto,
@@ -13,8 +13,8 @@ import { RecurringEventResponseDto } from './dto/recurring-event-response.dto';
 @Injectable()
 export class RecurringEventService {
   constructor(
-    @InjectRepository(AdminEvent)
-    private readonly adminEventRepo: Repository<AdminEvent>,
+    @InjectRepository(RecurringEvent)
+    private readonly recurringEventRepo: Repository<RecurringEvent>,
     @InjectRepository(Site)
     private readonly siteRepo: Repository<Site>,
   ) {}
@@ -37,10 +37,10 @@ export class RecurringEventService {
     const limit = query.limit ?? 10;
     const skip = (page - 1) * limit;
 
-    const events = await this.adminEventRepo.find({
+    const events = await this.recurringEventRepo.find({
       where: { site: { id: siteId } },
       relations: { site: true },
-      order: { date: order, time: order, id: 'ASC' },
+      order: { startDate: order, startTime: order, id: 'ASC' },
       skip,
       take: limit,
     });
@@ -48,20 +48,16 @@ export class RecurringEventService {
     return events.map((event) => this.mapToDto(event));
   }
 
-  private mapToDto(event: AdminEvent): RecurringEventResponseDto {
-    const dto: RecurringEventResponseDto = {
+  private mapToDto(event: RecurringEvent): RecurringEventResponseDto {
+    return {
       id: event.id,
       site: { id: event.site.id, name: event.site.name },
       name: event.name,
-      date: normalizeDate(event.date),
-      time: normalizeTime(event.time),
+      date: normalizeDate(event.startDate),
+      time: normalizeTime(event.startTime),
       description: event.description,
       place: event.place,
     };
-    if (event.registrationLink) {
-      dto.registrationLink = event.registrationLink;
-    }
-    return dto;
   }
 }
 

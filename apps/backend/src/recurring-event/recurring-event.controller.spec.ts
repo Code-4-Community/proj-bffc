@@ -21,7 +21,6 @@ describe('RecurringEventController', () => {
       time: '14:00:00',
       description: 'Join us for the annual harvest celebration',
       place: 'Main Garden Area',
-      registrationLink: 'https://lu.ma/harvest-2026',
     },
   ];
 

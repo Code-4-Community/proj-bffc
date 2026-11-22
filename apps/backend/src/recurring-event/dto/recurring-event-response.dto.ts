@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class RecurringEventSiteDto {
   @ApiProperty({ format: 'uuid' })
@@ -38,10 +38,4 @@ export class RecurringEventResponseDto {
 
   @ApiProperty({ description: 'Meeting location or place' })
   place!: string;
-
-  @ApiPropertyOptional({
-    description: 'Registration URL, when the event has one',
-    example: 'https://lu.ma/example-event',
-  })
-  registrationLink?: string;
 }
