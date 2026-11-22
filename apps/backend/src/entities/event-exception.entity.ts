@@ -18,6 +18,7 @@ export class EventException {
 
   @ManyToOne(() => RecurringEvent, (event) => event.exceptions, {
     onDelete: 'CASCADE',
+    nullable: false, 
   })
   @JoinColumn({ name: 'event_id' })
   event!: RecurringEvent;
@@ -33,8 +34,11 @@ export class EventException {
   reason?: string;
 
   // Only for rescheduled occurrences
-  @Column({ type: 'timestamptz', nullable: true })
-  newStartTime?: Date;
+  @Column({ type: 'date', nullable: true })
+  newDate?: string;
+
+  @Column({ type: 'time', nullable: true })
+  newStartTime?: string;
 
   // Optional duration override (in minutes) for rescheduled occurrences
   @Column({ type: 'int', nullable: true })
