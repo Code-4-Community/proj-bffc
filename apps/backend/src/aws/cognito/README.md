@@ -159,3 +159,9 @@ in that allowlist instead of simply an equality check.
 - The most amazing explanation of authn (OAUTH 2.0) and authz (OIDC) you'll ever watch: https://www.youtube.com/watch?v=996OiexHze0&t=2126s
 - Difference between id and access tokens: https://auth0.com/blog/id-token-access-token-what-is-the-difference/
 - Using AWS to verify JWT: https://docs.aws.amazon.com/cognito/latest/developerguide/amazon-cognito-user-pools-using-tokens-verifying-a-jwt.html
+
+## Managing users
+`CognitoService` also wraps the Cognito admin APIs: `createUser`, `addUserToGroup`, `removeUserFromGroup`, `disableUser` and `enableUser`.
+- Accounts are created with a verified email and Cognito's invite email suppressed. Site assignment stays in Postgres, not Cognito.
+- The `admin` and `steward` roles map to the `admins` and `stewards` groups in the user pool. The mapping lives in `COGNITO_GROUPS` in `cognito.types.ts`.
+- A duplicate email gives a 409, an unknown email a 404, and any other AWS failure a 500.
