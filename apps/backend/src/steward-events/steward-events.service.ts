@@ -14,7 +14,7 @@ export class StewardEventsService {
   async findBySite(siteId: string): Promise<StewardEventResponseDto[]> {
     const events = await this.stewardEventRepo.find({
       where: { site: { id: siteId } },
-      order: { date: 'ASC', time: 'ASC' },
+      order: { date: 'ASC', startTime: 'ASC' },
     });
 
     return events.map((event) => ({
@@ -22,7 +22,8 @@ export class StewardEventsService {
       name: event.name,
       description: event.description,
       date: event.date,
-      time: event.time,
+      startTime: event.startTime,
+      endTime: event.endTime,
       place: event.place,
     }));
   }
