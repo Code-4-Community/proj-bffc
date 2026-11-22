@@ -6,6 +6,7 @@ import { AppService } from './app.service';
 import AppDataSource from './data-source';
 import { CognitoModule } from './aws/cognito/cognito.module';
 import { UsersModule } from './users/users.module';
+import { StewardEventsModule } from './steward-events/steward-events.module';
 import { SitesModule } from './sites/sites.module';
 import { EventsModule } from './events/events.module';
 import { MediaModule } from './media/media.module';
@@ -23,6 +24,7 @@ import { AnnouncementsModule } from './announcements/announcements.module';
     }),
     CognitoModule,
     UsersModule,
+    StewardEventsModule,
     SitesModule,
     EventsModule,
     AnnouncementsModule,

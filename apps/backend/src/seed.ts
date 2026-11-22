@@ -298,11 +298,27 @@ async function seed() {
   // Steward events — has an end time but no flyer
   await stewardEventRepo.save(
     stewardEventRepo.create({
-      description: 'Weekly Watering Shift',
+      name: 'Weekly Watering Shift',
+      description: 'Help water the beds and fruit trees.',
       date: '2026-09-27',
       startTime: '09:00:00',
       endTime: '11:00:00',
       place: 'Fowler Clark Epstein Farm',
+      site: site2,
+      steward: stewardUser,
+    }),
+  );
+
+  // Inserted after the watering shift but dated earlier, so the
+  // chronological sort on GET /stewardEvent has something to reorder
+  await stewardEventRepo.save(
+    stewardEventRepo.create({
+      name: 'Community Workday',
+      description: 'Monthly cleanup and mulching. Tools provided.',
+      date: '2026-09-20',
+      startTime: '10:00:00',
+      endTime: '13:00:00',
+      place: 'Fowler Clark Epstein Farm — meet at the barn',
       site: site2,
       steward: stewardUser,
     }),
