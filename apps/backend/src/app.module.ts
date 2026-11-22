@@ -10,6 +10,7 @@ import { SitesModule } from './sites/sites.module';
 import { EventsModule } from './events/events.module';
 import { MediaModule } from './media/media.module';
 import { AnnouncementsModule } from './announcements/announcements.module';
+import { RecurringEventModule } from './recurring-event/recurring-event.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { AnnouncementsModule } from './announcements/announcements.module';
     EventsModule,
     AnnouncementsModule,
     MediaModule,
+    RecurringEventModule,
   ],
   controllers: [AppController],
   providers: [AppService],
