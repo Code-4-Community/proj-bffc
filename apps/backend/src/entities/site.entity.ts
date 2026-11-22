@@ -66,7 +66,7 @@ export class Site {
   @OneToMany(() => RecurringEvent, (event) => event.site)
   recurringEvents!: RecurringEvent[];
 
-  @ManyToMany(() => Plant, (plant) => plant.hostSites)
+  @ManyToMany(() => Plant, (plant) => plant.hostSites, { onDelete: 'CASCADE' })
   plants!: Plant[];
 
   @OneToMany(() => Image, (image) => image.site)
@@ -81,6 +81,6 @@ export class Site {
   @OneToMany(() => Announcement, (announcement) => announcement.site)
   announcements!: Announcement[];
 
-  @ManyToMany(() => PartnerOrg, (org) => org.sites)
+  @ManyToMany(() => PartnerOrg, (org) => org.sites, { onDelete: 'CASCADE' })
   partnerOrgs!: PartnerOrg[];
 }
