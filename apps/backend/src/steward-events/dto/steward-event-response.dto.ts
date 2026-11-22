@@ -14,7 +14,8 @@ export class StewardEventResponseDto {
   date: string;
 
   @ApiProperty({ example: '10:00:00' })
-  time: string;
+  startTime: string;
+  endTime: string; 
 
   @ApiProperty({
     description: 'Meeting/location info',
