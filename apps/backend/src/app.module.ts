@@ -11,6 +11,7 @@ import { SitesModule } from './sites/sites.module';
 import { EventsModule } from './events/events.module';
 import { MediaModule } from './media/media.module';
 import { AnnouncementsModule } from './announcements/announcements.module';
+import { RecurringEventModule } from './recurring-event/recurring-event.module';
 import { PlantsModule } from './plants/plants.module';
 
 @Module({
@@ -30,6 +31,7 @@ import { PlantsModule } from './plants/plants.module';
     EventsModule,
     AnnouncementsModule,
     MediaModule,
+    RecurringEventModule,
     PlantsModule,
   ],
   controllers: [AppController],
