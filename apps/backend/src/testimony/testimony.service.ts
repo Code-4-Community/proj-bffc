@@ -15,8 +15,8 @@ export class TestimonyService {
   ) {}
 
   async findBySiteId(siteId: string): Promise<TestimonyResponseDto[]> {
-    const site = await this.siteRepo.findOne({ where: { id: siteId } });
-    if (!site) {
+    const siteExists = await this.siteRepo.exists({ where: { id: siteId } });
+    if (!siteExists) {
       throw new NotFoundException(`Site with ID ${siteId} not found`);
     }
 

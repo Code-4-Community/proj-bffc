@@ -9,7 +9,7 @@ import { UserType } from '../entities/user.entity';
 describe('TestimonyService', () => {
   let service: TestimonyService;
   let mockTestimonialRepo: { find: jest.Mock };
-  let mockSiteRepo: { findOne: jest.Mock };
+  let mockSiteRepo: { exists: jest.Mock };
 
   const siteId = '123e4567-e89b-12d3-a456-426614174000';
 
@@ -46,7 +46,7 @@ describe('TestimonyService', () => {
 
   beforeEach(async () => {
     mockTestimonialRepo = { find: jest.fn() };
-    mockSiteRepo = { findOne: jest.fn() };
+    mockSiteRepo = { exists: jest.fn() };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -64,7 +64,7 @@ describe('TestimonyService', () => {
 
   describe('findBySiteId', () => {
     it('should return mapped testimony DTOs for valid site', async () => {
-      mockSiteRepo.findOne.mockResolvedValue(mockSite);
+      mockSiteRepo.exists.mockResolvedValue(true);
       mockTestimonialRepo.find.mockResolvedValue(mockTestimonials);
 
       const result = await service.findBySiteId(siteId);
@@ -77,7 +77,7 @@ describe('TestimonyService', () => {
     });
 
     it('should map answer field to quote in response', async () => {
-      mockSiteRepo.findOne.mockResolvedValue(mockSite);
+      mockSiteRepo.exists.mockResolvedValue(true);
       mockTestimonialRepo.find.mockResolvedValue(mockTestimonials);
 
       const result = await service.findBySiteId(siteId);
@@ -86,7 +86,7 @@ describe('TestimonyService', () => {
     });
 
     it('should return null steward when not attributed', async () => {
-      mockSiteRepo.findOne.mockResolvedValue(mockSite);
+      mockSiteRepo.exists.mockResolvedValue(true);
       mockTestimonialRepo.find.mockResolvedValue(mockTestimonials);
 
       const result = await service.findBySiteId(siteId);
@@ -95,7 +95,7 @@ describe('TestimonyService', () => {
     });
 
     it('should return only id and name for steward (not email)', async () => {
-      mockSiteRepo.findOne.mockResolvedValue(mockSite);
+      mockSiteRepo.exists.mockResolvedValue(true);
       mockTestimonialRepo.find.mockResolvedValue(mockTestimonials);
 
       const result = await service.findBySiteId(siteId);
@@ -105,7 +105,7 @@ describe('TestimonyService', () => {
     });
 
     it('should throw NotFoundException for non-existent site', async () => {
-      mockSiteRepo.findOne.mockResolvedValue(null);
+      mockSiteRepo.exists.mockResolvedValue(false);
 
       await expect(service.findBySiteId('nonexistent-id')).rejects.toThrow(
         NotFoundException,
@@ -116,7 +116,7 @@ describe('TestimonyService', () => {
     });
 
     it('should return empty array for site with no testimonies', async () => {
-      mockSiteRepo.findOne.mockResolvedValue(mockSite);
+      mockSiteRepo.exists.mockResolvedValue(true);
       mockTestimonialRepo.find.mockResolvedValue([]);
 
       const result = await service.findBySiteId(siteId);
@@ -125,7 +125,7 @@ describe('TestimonyService', () => {
     });
 
     it('should query testimonials with correct site filter and relations', async () => {
-      mockSiteRepo.findOne.mockResolvedValue(mockSite);
+      mockSiteRepo.exists.mockResolvedValue(true);
       mockTestimonialRepo.find.mockResolvedValue([]);
 
       await service.findBySiteId(siteId);
@@ -138,20 +138,20 @@ describe('TestimonyService', () => {
     });
 
     it('should check site existence before querying testimonials', async () => {
-      mockSiteRepo.findOne.mockResolvedValue(null);
+      mockSiteRepo.exists.mockResolvedValue(false);
 
       await expect(service.findBySiteId(siteId)).rejects.toThrow(
         NotFoundException,
       );
 
-      expect(mockSiteRepo.findOne).toHaveBeenCalledWith({
+      expect(mockSiteRepo.exists).toHaveBeenCalledWith({
         where: { id: siteId },
       });
       expect(mockTestimonialRepo.find).not.toHaveBeenCalled();
     });
 
     it('should order testimonies by createdAt descending', async () => {
-      mockSiteRepo.findOne.mockResolvedValue(mockSite);
+      mockSiteRepo.exists.mockResolvedValue(true);
       mockTestimonialRepo.find.mockResolvedValue(mockTestimonials);
 
       await service.findBySiteId(siteId);

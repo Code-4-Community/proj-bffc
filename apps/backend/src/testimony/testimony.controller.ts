@@ -6,6 +6,7 @@ import {
   ApiResponse,
   ApiNotFoundResponse,
 } from '@nestjs/swagger';
+import { Public } from '../aws/cognito/cognito.decorator';
 import { TestimonyService } from './testimony.service';
 import { TestimonyResponseDto } from './dto/testimony-response.dto';
 
@@ -15,6 +16,7 @@ export class TestimonyController {
   constructor(private testimonyService: TestimonyService) {}
 
   @Get(':site_id')
+  @Public()
   @ApiOperation({
     summary: 'List testimonies for a site',
     description:

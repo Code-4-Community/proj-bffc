@@ -18,7 +18,7 @@ export class Testimonial {
   @JoinColumn({ name: 'site_id' })
   site!: Site;
 
-  @ManyToOne(() => User, { nullable: true })
+  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'steward_id' })
   steward?: User;
 
