@@ -1,8 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
 
 import { AdminEvent } from '../entities/admin-event.entity';
+import { Site } from '../entities/site.entity';
+import { CreateAdminEventDto } from './dto/create-admin-event.dto';
 import { AdminEventQueryDto } from './dto/admin-event-query.dto';
 import { AdminEventResponseDto } from './dto/admin-event-response.dto';
 
@@ -11,7 +13,37 @@ export class EventsService {
   constructor(
     @InjectRepository(AdminEvent)
     private readonly adminEventRepo: Repository<AdminEvent>,
+    @InjectRepository(Site)
+    private readonly siteRepo: Repository<Site>,
   ) {}
+
+  /**
+   * Creates a Luma-linked admin event for an existing site.
+   *
+   * @throws {NotFoundException} If `dto.site_id` does not match a site.
+   */
+  async createAdminEvent(
+    dto: CreateAdminEventDto,
+  ): Promise<AdminEventResponseDto> {
+    const site = await this.siteRepo.findOne({ where: { id: dto.site_id } });
+    if (!site) {
+      throw new NotFoundException(`Site ${dto.site_id} not found`);
+    }
+
+    const created = this.adminEventRepo.create({
+      site,
+      name: dto.name,
+      description: dto.description,
+      place: dto.place,
+      date: dto.date,
+      startTime: dto.startTime,
+      endTime: dto.endTime,
+      registrationLink: dto.registrationLink,
+      flyerS3Key: dto.flyerS3Key,
+    });
+    const saved = await this.adminEventRepo.save(created);
+    return this.mapAdminEvent(saved);
+  }
 
   /**
    * Returns Luma-linked admin events that match `filters`, sorted by date
@@ -48,7 +80,14 @@ export class EventsService {
       date: normalizeDate(event.date),
       time: normalizeTime(event.startTime),
       description: event.description,
+      place: event.place,
     };
+    if (event.endTime) {
+      dto.endTime = normalizeTime(event.endTime);
+    }
+    if (event.flyerS3Key) {
+      dto.flyerS3Key = event.flyerS3Key;
+    }
     if (event.registrationLink) {
       dto.registrationLink = event.registrationLink;
     }

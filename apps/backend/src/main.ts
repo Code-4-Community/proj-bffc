@@ -36,6 +36,7 @@ async function bootstrap() {
         'Sites',
         'Site details, addresses, plant inventory, and site media',
       )
+      .addTag('Plants', 'Plant details and the sites where each plant grows')
       .addTag('Events', 'Luma-linked admin events')
       .addTag('Media', 'Images and videos for a site')
       .addTag('Events', 'Admin (Luma-linked) and steward-published events')

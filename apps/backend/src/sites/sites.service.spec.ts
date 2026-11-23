@@ -48,9 +48,11 @@ describe('SitesService', () => {
       },
     ],
     videos: [],
-    plantInventory: [{ id: 'plant-1', plantName: 'Paw Paw', site: {} as Site }],
+    plants: [
+      { id: 'plant-1', plantName: 'Paw Paw', recipes: [], hostSites: [] },
+    ],
     partnerOrgs: [
-      { id: 'org-1', name: 'Boston Food Forest Coalition', site: {} as Site },
+      { id: 'org-1', name: 'Boston Food Forest Coalition', sites: [] },
     ],
   };
 
@@ -130,7 +132,7 @@ describe('SitesService', () => {
           'address',
           'images',
           'videos',
-          'plantInventory',
+          'plants',
           'partnerOrgs',
         ],
       });

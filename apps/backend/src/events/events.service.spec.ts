@@ -1,3 +1,4 @@
+import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 
@@ -33,7 +34,8 @@ function adminEvent(
 
 describe('EventsService', () => {
   let service: EventsService;
-  let adminRepo: { find: jest.Mock };
+  let adminRepo: { find: jest.Mock; create: jest.Mock; save: jest.Mock };
+  let siteRepo: { findOne: jest.Mock };
 
   const lumaEvents = [
     adminEvent({
@@ -57,12 +59,18 @@ describe('EventsService', () => {
   ];
 
   beforeEach(async () => {
-    adminRepo = { find: jest.fn().mockResolvedValue(lumaEvents) };
+    adminRepo = {
+      find: jest.fn().mockResolvedValue(lumaEvents),
+      create: jest.fn((x) => x),
+      save: jest.fn((x) => Promise.resolve({ id: 'new-id', ...x })),
+    };
+    siteRepo = { findOne: jest.fn().mockResolvedValue(SITE_A) };
 
     const moduleRef = await Test.createTestingModule({
       providers: [
         EventsService,
         { provide: getRepositoryToken(AdminEvent), useValue: adminRepo },
+        { provide: getRepositoryToken(Site), useValue: siteRepo },
       ],
     }).compile();
 
@@ -81,6 +89,7 @@ describe('EventsService', () => {
         date: '2026-10-25',
         time: '14:00:00',
         description: 'Cider and potluck',
+        place: 'Orchard',
         registrationLink: 'https://lu.ma/harvest',
       });
       expect(harvest).not.toHaveProperty('eventType');
@@ -163,6 +172,54 @@ describe('EventsService', () => {
 
       const [event] = await service.findAllForAdmin({});
       expect(event).not.toHaveProperty('registrationLink');
+    });
+  });
+
+  describe('createAdminEvent', () => {
+    const dto = {
+      site_id: SITE_A.id,
+      name: 'Fall Harvest',
+      description: 'Cider and potluck',
+      place: 'Orchard',
+      date: '2026-10-25',
+      startTime: '14:00',
+      endTime: '16:00:00',
+      registrationLink: 'https://lu.ma/harvest',
+    };
+
+    it('saves the event on the site and returns the mapped event', async () => {
+      const result = await service.createAdminEvent(dto);
+
+      expect(siteRepo.findOne).toHaveBeenCalledWith({
+        where: { id: SITE_A.id },
+      });
+      expect(adminRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          site: SITE_A,
+          name: 'Fall Harvest',
+          registrationLink: 'https://lu.ma/harvest',
+        }),
+      );
+      expect(result).toEqual({
+        id: 'new-id',
+        site: { id: SITE_A.id, name: SITE_A.name },
+        name: 'Fall Harvest',
+        date: '2026-10-25',
+        time: '14:00',
+        endTime: '16:00:00',
+        description: 'Cider and potluck',
+        place: 'Orchard',
+        registrationLink: 'https://lu.ma/harvest',
+      });
+    });
+
+    it('throws NotFoundException and saves nothing for an unknown site', async () => {
+      siteRepo.findOne.mockResolvedValue(null);
+
+      await expect(service.createAdminEvent(dto)).rejects.toBeInstanceOf(
+        NotFoundException,
+      );
+      expect(adminRepo.save).not.toHaveBeenCalled();
     });
   });
 });
