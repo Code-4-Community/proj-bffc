@@ -3,7 +3,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { NotFoundException } from '@nestjs/common';
 import { TestimonyService } from './testimony.service';
 import { Testimonial } from '../entities/testimonial.entity';
-import { Site, SiteType } from '../entities/site.entity';
+import { Site } from '../entities/site.entity';
 import { UserType } from '../entities/user.entity';
 
 describe('TestimonyService', () => {
@@ -12,12 +12,6 @@ describe('TestimonyService', () => {
   let mockSiteRepo: { exists: jest.Mock };
 
   const siteId = '123e4567-e89b-12d3-a456-426614174000';
-
-  const mockSite: Partial<Site> = {
-    id: siteId,
-    name: 'Test Food Forest',
-    type: SiteType.EXISTING_COALITION,
-  };
 
   const mockTestimonials: Partial<Testimonial>[] = [
     {
