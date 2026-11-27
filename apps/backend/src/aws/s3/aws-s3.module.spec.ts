@@ -5,11 +5,13 @@ describe('AWSS3Module', () => {
     'S3_ENABLED',
     'AWS_ACCESS_KEY_ID',
     'AWS_SECRET_ACCESS_KEY',
+    'AWS_MEDIA_BUCKET_NAME',
   ] as const;
 
   const REQUIRED_WHEN_ENABLED = [
     'AWS_ACCESS_KEY_ID',
     'AWS_SECRET_ACCESS_KEY',
+    'AWS_MEDIA_BUCKET_NAME',
   ] as const;
 
   const originalEnv: Record<string, string | undefined> = {};
@@ -26,6 +28,7 @@ describe('AWSS3Module', () => {
     process.env.S3_ENABLED = 'true';
     process.env.AWS_ACCESS_KEY_ID = 'test-access-key';
     process.env.AWS_SECRET_ACCESS_KEY = 'test-secret-key';
+    process.env.AWS_MEDIA_BUCKET_NAME = 'test-media-bucket';
 
     module = new AWSS3Module();
 
@@ -113,7 +116,9 @@ describe('AWSS3Module', () => {
 
       expect(warnSpy).toHaveBeenCalledTimes(1);
       expect(warnSpy).toHaveBeenCalledWith(
-        expect.stringContaining('AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY'),
+        expect.stringContaining(
+          'AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_MEDIA_BUCKET_NAME',
+        ),
       );
     });
   });

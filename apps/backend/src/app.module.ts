@@ -12,6 +12,7 @@ import { EventsModule } from './events/events.module';
 import { MediaModule } from './media/media.module';
 import { AnnouncementsModule } from './announcements/announcements.module';
 import { PlantsModule } from './plants/plants.module';
+import { AWSS3Module } from './aws/s3/aws-s3.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { PlantsModule } from './plants/plants.module';
       migrationsRun: false,
     }),
     CognitoModule,
+    AWSS3Module,
     UsersModule,
     StewardEventsModule,
     SitesModule,

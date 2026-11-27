@@ -8,6 +8,7 @@ import { getMissingEnvVars } from '../../utils/env';
 const REQUIRED_ENV_VARS_WHEN_ENABLED = [
   'AWS_ACCESS_KEY_ID',
   'AWS_SECRET_ACCESS_KEY',
+  'AWS_MEDIA_BUCKET_NAME',
 ] as const;
 
 @Global()
