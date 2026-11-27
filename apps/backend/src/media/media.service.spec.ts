@@ -5,6 +5,8 @@ import { MediaService } from './media.service';
 import { Site } from '../entities/site.entity';
 import { Image } from '../entities/image.entity';
 import { Video } from '../entities/video.entity';
+import { User } from '../entities/user.entity';
+import { AWSS3Service } from '../aws/s3/aws-s3.service';
 import { MediaType } from './dto/media-query.dto';
 
 describe('MediaService', () => {
@@ -94,6 +96,11 @@ describe('MediaService', () => {
         { provide: getRepositoryToken(Site), useValue: siteRepo },
         { provide: getRepositoryToken(Image), useValue: imageRepo },
         { provide: getRepositoryToken(Video), useValue: videoRepo },
+        { provide: getRepositoryToken(User), useValue: { findOne: jest.fn() } },
+        {
+          provide: AWSS3Service,
+          useValue: { putObject: jest.fn(), deleteObject: jest.fn() },
+        },
       ],
     }).compile();
 

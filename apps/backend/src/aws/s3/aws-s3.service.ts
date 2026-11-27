@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
+  DeleteObjectCommand,
   GetObjectCommand,
   NoSuchKey,
   PutObjectCommand,
@@ -28,6 +29,7 @@ const ALLOWED_MIME_TYPES = new Set([
   'text/plain',
   'text/csv',
   'video/mp4',
+  'video/quicktime',
   'audio/mpeg',
 ]);
 
@@ -62,22 +64,52 @@ export class AWSS3Service {
   }
 
   async upload(input: S3UploadInput): Promise<string> {
+    const { url } = await this.putObject(input);
+    return url;
+  }
+
+  /**
+   * Same as {@link upload}, but also returns the object key so callers can
+   * store it and delete the object if a later step fails.
+   */
+  async putObject(input: S3UploadInput): Promise<{ url: string; key: string }> {
     const bucketName = this.validateUploadInput(input);
     const { fileBuffer, fileName, mimeType } = input;
     try {
-      const uniqueFileName = this.buildUniqueFileName(fileName);
+      const key = this.buildUniqueFileName(fileName);
       const command = new PutObjectCommand({
         Bucket: bucketName,
-        Key: uniqueFileName,
+        Key: key,
         Body: fileBuffer,
         ContentType: mimeType,
       });
 
       await this.client.send(command);
 
-      return `https://${bucketName}.s3.${this.region}.amazonaws.com/${uniqueFileName}`;
+      return {
+        key,
+        url: `https://${bucketName}.s3.${this.region}.amazonaws.com/${key}`,
+      };
     } catch (error) {
       throw new Error('File upload to AWS failed: ' + error);
+    }
+  }
+
+  async deleteObject(key: string, bucket: S3Buckets): Promise<void> {
+    const bucketName = this.bucketNames[bucket];
+    if (!bucketName || !key) {
+      return;
+    }
+    try {
+      await this.client.send(
+        new DeleteObjectCommand({ Bucket: bucketName, Key: key }),
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to delete S3 object: key=${key}, bucket=${bucket}, error=${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
     }
   }
 

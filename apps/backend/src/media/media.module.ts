@@ -1,14 +1,17 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MediaController } from './media.controller';
+import { ImageController } from './image.controller';
+import { VideoController } from './video.controller';
 import { MediaService } from './media.service';
 import { Site } from '../entities/site.entity';
 import { Image } from '../entities/image.entity';
 import { Video } from '../entities/video.entity';
+import { User } from '../entities/user.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Site, Image, Video])],
-  controllers: [MediaController],
+  imports: [TypeOrmModule.forFeature([Site, Image, Video, User])],
+  controllers: [MediaController, ImageController, VideoController],
   providers: [MediaService],
   exports: [MediaService],
 })

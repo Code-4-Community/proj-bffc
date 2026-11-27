@@ -1,4 +1,5 @@
 import {
+  DeleteObjectCommand,
   GetObjectCommand,
   GetObjectCommandOutput,
   NoSuchKey,
@@ -131,6 +132,7 @@ describe('AWSS3Service', () => {
           'text/plain',
           'text/csv',
           'video/mp4',
+          'video/quicktime',
           'audio/mpeg',
         ];
         for (const mimeType of allowedTypes) {
@@ -148,6 +150,32 @@ describe('AWSS3Service', () => {
           'Missing required environment variable for S3 bucket',
         );
       });
+    });
+  });
+
+  describe('deleteObject', () => {
+    it('sends DeleteObject with the resolved bucket and key', async () => {
+      s3Mock.on(DeleteObjectCommand).resolves({});
+
+      await service.deleteObject('photo.jpg', testBucketEnum);
+
+      const commandCall = s3Mock.call(0);
+      expect((commandCall.args[0] as DeleteObjectCommand).input).toEqual({
+        Bucket: testBucket,
+        Key: 'photo.jpg',
+      });
+    });
+
+    it('does not throw when S3 rejects the delete', async () => {
+      s3Mock.on(DeleteObjectCommand).rejects(new Error('denied'));
+      const loggerErrorSpy = jest
+        .spyOn(service['logger'], 'error')
+        .mockImplementation(() => undefined);
+
+      await expect(
+        service.deleteObject('photo.jpg', testBucketEnum),
+      ).resolves.toBeUndefined();
+      expect(loggerErrorSpy).toHaveBeenCalled();
     });
   });
 
